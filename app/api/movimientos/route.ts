@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const mes = searchParams.get("mes");
   const tipo = searchParams.get("tipo") as Tipo | null;
   const categoria = searchParams.get("categoria");
+  const miembroId = searchParams.get("miembroId");
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
   const limit = Math.min(100, parseInt(searchParams.get("limit") ?? "50"));
   const orderByField = searchParams.get("orderBy") ?? "fecha";
@@ -24,9 +25,7 @@ export async function GET(req: NextRequest) {
   const allowedOrderBy = ["fecha", "monto", "createdAt"];
   const safeOrderBy = allowedOrderBy.includes(orderByField) ? orderByField : "fecha";
 
-  const where: Prisma.MovimientoWhereInput = {
-    userId: session.user.id,
-  };
+  const where: Prisma.MovimientoWhereInput = { userId: session.user.id };
 
   if (mes) {
     const [year, month] = mes.split("-").map(Number);
@@ -46,6 +45,12 @@ export async function GET(req: NextRequest) {
     where.categoria = categoria;
   }
 
+  if (miembroId === "sin_asignar") {
+    where.miembroId = null;
+  } else if (miembroId) {
+    where.miembroId = miembroId;
+  }
+
   const [total, movimientos] = await Promise.all([
     prisma.movimiento.count({ where }),
     prisma.movimiento.findMany({
@@ -53,17 +58,13 @@ export async function GET(req: NextRequest) {
       orderBy: { [safeOrderBy]: order },
       skip: (page - 1) * limit,
       take: limit,
+      include: { miembro: { select: { id: true, nombre: true } } },
     }),
   ]);
 
   return NextResponse.json({
     data: movimientos,
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
+    pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
   });
 }
 
@@ -85,7 +86,9 @@ export async function POST(req: NextRequest) {
         categoria: data.categoria,
         concepto: data.concepto,
         monto: data.monto,
+        miembroId: data.miembroId ?? null,
       },
+      include: { miembro: { select: { id: true, nombre: true } } },
     });
 
     return NextResponse.json(movimiento, { status: 201 });

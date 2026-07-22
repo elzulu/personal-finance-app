@@ -7,11 +7,17 @@ import { movimientoSchema, MovimientoInput } from "@/lib/validations";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
 import { toInputDate } from "@/lib/formatters";
 
+interface Miembro {
+  id: string;
+  nombre: string;
+}
+
 interface MovimientoFormProps {
   defaultValues?: Partial<MovimientoInput>;
   onSubmit: (data: MovimientoInput) => Promise<void>;
   submitLabel?: string;
   isLoading?: boolean;
+  miembros?: Miembro[];
 }
 
 export function MovimientoForm({
@@ -19,6 +25,7 @@ export function MovimientoForm({
   onSubmit,
   submitLabel = "Guardar",
   isLoading = false,
+  miembros = [],
 }: MovimientoFormProps) {
   const today = toInputDate(new Date());
 
@@ -38,6 +45,7 @@ export function MovimientoForm({
       categoria: "",
       concepto: "",
       monto: undefined,
+      miembroId: null,
       ...defaultValues,
     },
   });
@@ -57,6 +65,7 @@ export function MovimientoForm({
       categoria: "",
       concepto: "",
       monto: undefined,
+      miembroId: null,
     });
   }
 
@@ -82,7 +91,6 @@ export function MovimientoForm({
             <option value="EGRESO">Egreso</option>
             <option value="INGRESO">Ingreso</option>
           </select>
-          {errors.tipo && <p className={errorClass}>{errors.tipo.message}</p>}
         </div>
 
         {/* Categoría */}
@@ -127,7 +135,7 @@ export function MovimientoForm({
         </div>
 
         {/* Concepto */}
-        <div className="col-span-2">
+        <div className={miembros.length > 0 ? "col-span-2 sm:col-span-1" : "col-span-2"}>
           <label className={labelClass}>Concepto</label>
           <input
             type="text"
@@ -140,6 +148,33 @@ export function MovimientoForm({
             <p className={errorClass}>{errors.concepto.message}</p>
           )}
         </div>
+
+        {/* Miembro (solo si hay miembros configurados) */}
+        {miembros.length > 0 && (
+          <div className="col-span-2 sm:col-span-1">
+            <label className={labelClass}>Miembro</label>
+            <Controller
+              name="miembroId"
+              control={control}
+              render={({ field }) => (
+                <select
+                  className={inputClass}
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? null : e.target.value)
+                  }
+                >
+                  <option value="">Sin asignar</option>
+                  {miembros.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.nombre}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+          </div>
+        )}
       </div>
 
       <button

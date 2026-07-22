@@ -7,14 +7,20 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EditMovimientoModal } from "./EditMovimientoModal";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
 
+interface Miembro {
+  id: string;
+  nombre: string;
+}
+
 interface Movimiento {
   id: string;
   fecha: string;
   tipo: "INGRESO" | "EGRESO";
   categoria: string;
   concepto: string;
-  presupuesto: string | null;
   monto: string;
+  miembroId: string | null;
+  miembro: Miembro | null;
 }
 
 interface Pagination {
@@ -26,6 +32,7 @@ interface Pagination {
 
 interface TablaMovimientosProps {
   mes: string;
+  miembros: Miembro[];
 }
 
 const TODAS_CATEGORIAS = [
@@ -33,13 +40,14 @@ const TODAS_CATEGORIAS = [
   ...CATEGORIAS_POR_TIPO.EGRESO,
 ];
 
-export function TablaMovimientos({ mes }: TablaMovimientosProps) {
+export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
   const [data, setData] = useState<Movimiento[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [filterTipo, setFilterTipo] = useState<"" | "INGRESO" | "EGRESO">("");
   const [filterCategoria, setFilterCategoria] = useState("");
+  const [filterMiembro, setFilterMiembro] = useState("");
   const [orderBy, setOrderBy] = useState("fecha");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -47,9 +55,8 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
   const [editTarget, setEditTarget] = useState<Movimiento | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  // Refs to read latest values inside async fetch without stale closures
-  const stateRef = useRef({ page, orderBy, order, filterTipo, filterCategoria });
-  stateRef.current = { page, orderBy, order, filterTipo, filterCategoria };
+  const stateRef = useRef({ page, orderBy, order, filterTipo, filterCategoria, filterMiembro });
+  stateRef.current = { page, orderBy, order, filterTipo, filterCategoria, filterMiembro };
 
   const fetchData = useCallback(
     async (overrides?: {
@@ -58,6 +65,7 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
       order?: string;
       tipo?: string;
       categoria?: string;
+      miembroId?: string;
     }) => {
       setLoading(true);
       const s = stateRef.current;
@@ -69,10 +77,11 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
         order: overrides?.order ?? s.order,
       });
       const tipo = overrides?.tipo !== undefined ? overrides.tipo : s.filterTipo;
-      const categoria =
-        overrides?.categoria !== undefined ? overrides.categoria : s.filterCategoria;
+      const categoria = overrides?.categoria !== undefined ? overrides.categoria : s.filterCategoria;
+      const miembroId = overrides?.miembroId !== undefined ? overrides.miembroId : s.filterMiembro;
       if (tipo) params.set("tipo", tipo);
       if (categoria) params.set("categoria", categoria);
+      if (miembroId) params.set("miembroId", miembroId);
 
       try {
         const res = await fetch(`/api/movimientos?${params}`);
@@ -86,19 +95,19 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
     [mes]
   );
 
-  // Auto-fetch when component mounts or mes changes
   useEffect(() => {
     setPage(1);
     setFilterTipo("");
     setFilterCategoria("");
+    setFilterMiembro("");
     setOrderBy("fecha");
     setOrder("desc");
-    fetchData({ page: 1, tipo: "", categoria: "", orderBy: "fecha", order: "desc" });
+    fetchData({ page: 1, tipo: "", categoria: "", miembroId: "", orderBy: "fecha", order: "desc" });
   }, [mes, fetchData]);
 
   function handleFilter() {
     setPage(1);
-    fetchData({ page: 1, tipo: filterTipo, categoria: filterCategoria });
+    fetchData({ page: 1, tipo: filterTipo, categoria: filterCategoria, miembroId: filterMiembro });
   }
 
   function handleSort(field: string) {
@@ -145,11 +154,23 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
         >
           <option value="">Todas las categorías</option>
           {TODAS_CATEGORIAS.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
+
+        {miembros.length > 0 && (
+          <select
+            value={filterMiembro}
+            onChange={(e) => setFilterMiembro(e.target.value)}
+            className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Todos los miembros</option>
+            <option value="sin_asignar">Sin asignar</option>
+            {miembros.map((m) => (
+              <option key={m.id} value={m.id}>{m.nombre}</option>
+            ))}
+          </select>
+        )}
 
         <button
           onClick={handleFilter}
@@ -169,19 +190,14 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th
-                    className={`${thClass} cursor-pointer hover:text-gray-800`}
-                    onClick={() => handleSort("fecha")}
-                  >
+                  <th className={`${thClass} cursor-pointer hover:text-gray-800`} onClick={() => handleSort("fecha")}>
                     Fecha <SortIcon field="fecha" />
                   </th>
                   <th className={thClass}>Tipo</th>
                   <th className={thClass}>Categoría</th>
                   <th className={thClass}>Concepto</th>
-                  <th
-                    className={`${thClass} cursor-pointer hover:text-gray-800 text-right`}
-                    onClick={() => handleSort("monto")}
-                  >
+                  {miembros.length > 0 && <th className={thClass}>Miembro</th>}
+                  <th className={`${thClass} cursor-pointer hover:text-gray-800 text-right`} onClick={() => handleSort("monto")}>
                     Monto <SortIcon field="monto" />
                   </th>
                   <th className={thClass} />
@@ -190,10 +206,7 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
               <tbody className="divide-y divide-gray-100">
                 {data.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="px-4 py-8 text-center text-gray-400 text-sm"
-                    >
+                    <td colSpan={miembros.length > 0 ? 7 : 6} className="px-4 py-8 text-center text-gray-400 text-sm">
                       Sin movimientos para los filtros seleccionados
                     </td>
                   </tr>
@@ -209,22 +222,18 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
                       </Badge>
                     </td>
                     <td className="px-3 py-2.5 text-gray-600">{m.categoria}</td>
-                    <td className="px-3 py-2.5 text-gray-800 max-w-[180px] truncate">
-                      {m.concepto}
-                    </td>
-                    <td
-                      className={`px-3 py-2.5 text-right font-semibold whitespace-nowrap ${
-                        m.tipo === "INGRESO" ? "text-green-600" : "text-gray-800"
-                      }`}
-                    >
+                    <td className="px-3 py-2.5 text-gray-800 max-w-[160px] truncate">{m.concepto}</td>
+                    {miembros.length > 0 && (
+                      <td className="px-3 py-2.5 text-gray-500 text-xs">
+                        {m.miembro?.nombre ?? <span className="text-gray-300">—</span>}
+                      </td>
+                    )}
+                    <td className={`px-3 py-2.5 text-right font-semibold whitespace-nowrap ${m.tipo === "INGRESO" ? "text-green-600" : "text-gray-800"}`}>
                       {formatCOP(Number(m.monto))}
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => setEditTarget(m)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium"
-                        >
+                        <button onClick={() => setEditTarget(m)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
                           Editar
                         </button>
                         <button
@@ -242,38 +251,21 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
             </table>
           </div>
 
-          {/* Paginación */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-3 text-sm">
-              <span className="text-gray-500">
-                {pagination.total} movimientos
-              </span>
+              <span className="text-gray-500">{pagination.total} movimientos</span>
               <div className="flex gap-1">
                 <button
                   disabled={page === 1}
-                  onClick={() => {
-                    const newPage = page - 1;
-                    setPage(newPage);
-                    fetchData({ page: newPage });
-                  }}
+                  onClick={() => { const p = page - 1; setPage(p); fetchData({ page: p }); }}
                   className="px-3 py-1 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-                >
-                  ←
-                </button>
-                <span className="px-3 py-1 text-gray-600">
-                  {page} / {pagination.totalPages}
-                </span>
+                >←</button>
+                <span className="px-3 py-1 text-gray-600">{page} / {pagination.totalPages}</span>
                 <button
                   disabled={page === pagination.totalPages}
-                  onClick={() => {
-                    const newPage = page + 1;
-                    setPage(newPage);
-                    fetchData({ page: newPage });
-                  }}
+                  onClick={() => { const p = page + 1; setPage(p); fetchData({ page: p }); }}
                   className="px-3 py-1 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-                >
-                  →
-                </button>
+                >→</button>
               </div>
             </div>
           )}
@@ -283,6 +275,7 @@ export function TablaMovimientos({ mes }: TablaMovimientosProps) {
       {editTarget && (
         <EditMovimientoModal
           movimiento={editTarget}
+          miembros={miembros}
           onClose={() => setEditTarget(null)}
           onSaved={() => fetchData()}
         />

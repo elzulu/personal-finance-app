@@ -11,6 +11,11 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Card } from "@/components/ui/Card";
 import { getCurrentMesKey, getMesLabel } from "@/lib/formatters";
 
+interface Miembro {
+  id: string;
+  nombre: string;
+}
+
 interface Resumen {
   mes: string;
   ingresos: number;
@@ -24,6 +29,7 @@ interface Resumen {
 export default function DashboardPage() {
   const [mes, setMes] = useState(getCurrentMesKey());
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [loading, setLoading] = useState(true);
   const [formSuccess, setFormSuccess] = useState(false);
 
@@ -42,6 +48,13 @@ export default function DashboardPage() {
     fetchResumen(mes);
   }, [mes, fetchResumen]);
 
+  useEffect(() => {
+    fetch("/api/miembros")
+      .then((r) => r.json())
+      .then(setMiembros)
+      .catch(() => {});
+  }, []);
+
   async function handleNuevoMovimiento(data: MovimientoInput) {
     const res = await fetch("/api/movimientos", {
       method: "POST",
@@ -56,22 +69,17 @@ export default function DashboardPage() {
     setTimeout(() => setFormSuccess(false), 2500);
     const movFecha = new Date(data.fecha);
     const movMes = `${movFecha.getFullYear()}-${String(movFecha.getMonth() + 1).padStart(2, "0")}`;
-    if (movMes === mes) {
-      fetchResumen(mes);
-    }
+    if (movMes === mes) fetchResumen(mes);
   }
 
-  const egresosData =
-    resumen?.porCategoria.filter((c) => c.tipo === "EGRESO") ?? [];
+  const egresosData = resumen?.porCategoria.filter((c) => c.tipo === "EGRESO") ?? [];
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 capitalize mt-0.5">
-            {getMesLabel(mes)}
-          </p>
+          <p className="text-sm text-gray-500 capitalize mt-0.5">{getMesLabel(mes)}</p>
         </div>
         <input
           type="month"
@@ -87,31 +95,23 @@ export default function DashboardPage() {
         </div>
       ) : resumen ? (
         <>
-          <ResumenCards
-            ingresos={resumen.ingresos}
-            egresos={resumen.egresos}
-            saldo={resumen.saldo}
-          />
-
+          <ResumenCards ingresos={resumen.ingresos} egresos={resumen.egresos} saldo={resumen.saldo} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <GastoPorCategoria data={egresosData} />
             <TopConceptos data={resumen.topConceptos} />
           </div>
-
           <EvolucionMensual data={resumen.evolucion} />
         </>
       ) : null}
 
       <Card className="p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">
-          Registrar movimiento
-        </h2>
+        <h2 className="text-sm font-semibold text-gray-700 mb-4">Registrar movimiento</h2>
         {formSuccess && (
           <div className="mb-3 p-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
             Movimiento guardado correctamente
           </div>
         )}
-        <MovimientoForm onSubmit={handleNuevoMovimiento} />
+        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} />
       </Card>
     </div>
   );

@@ -33,7 +33,9 @@ export async function PATCH(
         ...(data.categoria ? { categoria: data.categoria } : {}),
         ...(data.concepto ? { concepto: data.concepto } : {}),
         ...(data.monto !== undefined ? { monto: data.monto } : {}),
+        ...(data.miembroId !== undefined ? { miembroId: data.miembroId } : {}),
       },
+      include: { miembro: { select: { id: true, nombre: true } } },
     });
 
     return NextResponse.json(movimiento);

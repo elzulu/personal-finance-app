@@ -4,6 +4,11 @@ import { MovimientoForm } from "@/components/forms/MovimientoForm";
 import { MovimientoInput } from "@/lib/validations";
 import { toInputDate } from "@/lib/formatters";
 
+interface Miembro {
+  id: string;
+  nombre: string;
+}
+
 interface Movimiento {
   id: string;
   fecha: string;
@@ -11,15 +16,17 @@ interface Movimiento {
   categoria: string;
   concepto: string;
   monto: string;
+  miembroId: string | null;
 }
 
 interface EditModalProps {
   movimiento: Movimiento;
+  miembros: Miembro[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function EditMovimientoModal({ movimiento, onClose, onSaved }: EditModalProps) {
+export function EditMovimientoModal({ movimiento, miembros, onClose, onSaved }: EditModalProps) {
   async function handleSubmit(data: MovimientoInput) {
     const res = await fetch(`/api/movimientos/${movimiento.id}`, {
       method: "PATCH",
@@ -56,9 +63,11 @@ export function EditMovimientoModal({ movimiento, onClose, onSaved }: EditModalP
             categoria: movimiento.categoria,
             concepto: movimiento.concepto,
             monto: Number(movimiento.monto),
+            miembroId: movimiento.miembroId,
           }}
           onSubmit={handleSubmit}
           submitLabel="Guardar cambios"
+          miembros={miembros}
         />
       </div>
     </div>

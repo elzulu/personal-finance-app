@@ -14,6 +14,18 @@ model User {
   name         String?
   createdAt    DateTime     @default(now())
   movimientos  Movimiento[]
+  miembros     Miembro[]
+}
+
+model Miembro {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id])
+  nombre      String
+  createdAt   DateTime     @default(now())
+  movimientos Movimiento[]
+
+  @@index([userId])
 }
 
 enum Tipo {
@@ -25,6 +37,8 @@ model Movimiento {
   id         String   @id @default(cuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id])
+  miembroId  String?
+  miembro    Miembro? @relation(fields: [miembroId], references: [id])
   fecha      DateTime
   tipo       Tipo
   categoria  String
@@ -35,4 +49,5 @@ model Movimiento {
 
   @@index([userId, fecha])
   @@index([userId, tipo, categoria])
+  @@index([userId, miembroId])
 }

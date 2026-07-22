@@ -15,6 +15,7 @@ export const movimientoBaseSchema = z.object({
       invalid_type_error: "Ingresa un número válido",
     })
     .positive("El monto debe ser mayor a 0"),
+  miembroId: z.string().optional().nullable(),
 });
 
 export const movimientoSchema = movimientoBaseSchema.refine(
@@ -40,3 +41,8 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+export const miembroSchema = z.object({
+  nombre: z.string().min(1, "El nombre es requerido").max(60),
+});
+export type MiembroInput = z.infer<typeof miembroSchema>;
