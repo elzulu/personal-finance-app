@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime     @default(now())
+  movimientos  Movimiento[]
+}
+
+enum Tipo {
+  INGRESO
+  EGRESO
+}
+
+model Movimiento {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  fecha       DateTime
+  tipo        Tipo
+  categoria   String
+  concepto    String
+  presupuesto Decimal? @db.Decimal(12, 2)
+  monto       Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, fecha])
+  @@index([userId, tipo, categoria])
+}

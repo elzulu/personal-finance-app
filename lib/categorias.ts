@@ -1,0 +1,19 @@
+import { Tipo } from "./types";
+
+export const CATEGORIAS_POR_TIPO: Record<Tipo, string[]> = {
+  INGRESO: ["Sueldo", "Negocio", "Otro"],
+  EGRESO: ["Servicios", "Gastos", "Deudas", "Ahorro"],
+};
+
+export function getCategoriasParaTipo(tipo: Tipo): string[] {
+  return CATEGORIAS_POR_TIPO[tipo] ?? [];
+}
+
+export function isCategoriaValida(categoria: string, tipo: Tipo): boolean {
+  return CATEGORIAS_POR_TIPO[tipo]?.includes(categoria) ?? false;
+}
+
+export const TODAS_LAS_CATEGORIAS = [
+  ...CATEGORIAS_POR_TIPO.INGRESO,
+  ...CATEGORIAS_POR_TIPO.EGRESO,
+];
