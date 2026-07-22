@@ -1,8 +1,21 @@
 import { Tipo } from "./types";
 
 export const CATEGORIAS_POR_TIPO: Record<Tipo, string[]> = {
-  INGRESO: ["Sueldo", "Negocio", "Otro"],
-  EGRESO: ["Servicios", "Gastos", "Deudas", "Ahorro"],
+  INGRESO: ["Sueldo", "Negocio", "Inversiones", "Arriendo", "Bonificaciones", "Otro"],
+  EGRESO: [
+    "Vivienda",
+    "Alimentación",
+    "Transporte",
+    "Salud",
+    "Educación",
+    "Entretenimiento",
+    "Ropa",
+    "Deudas",
+    "Ahorro",
+    "Tecnología",
+    "Familia",
+    "Otro",
+  ],
 };
 
 export function getCategoriasParaTipo(tipo: Tipo): string[] {

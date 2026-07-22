@@ -28,14 +28,13 @@ export async function GET(req: NextRequest) {
     orderBy: { fecha: "asc" },
   });
 
-  const BOM = "\uFEFF"; // UTF-8 BOM para que Excel abra correctamente
-  const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "Presupuesto", "Monto"];
+  const BOM = "\uFEFF";
+  const headers = ["Fecha", "Tipo", "Categoria", "Concepto", "Monto"];
   const rows = movimientos.map((m) => [
     m.fecha.toISOString().split("T")[0],
     m.tipo,
     m.categoria,
     `"${m.concepto.replace(/"/g, '""')}"`,
-    m.presupuesto?.toString() ?? "",
     m.monto.toString(),
   ]);
 

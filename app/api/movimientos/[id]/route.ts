@@ -33,9 +33,6 @@ export async function PATCH(
         ...(data.categoria ? { categoria: data.categoria } : {}),
         ...(data.concepto ? { concepto: data.concepto } : {}),
         ...(data.monto !== undefined ? { monto: data.monto } : {}),
-        ...(data.presupuesto !== undefined
-          ? { presupuesto: data.presupuesto }
-          : {}),
       },
     });
 

@@ -23,24 +23,20 @@ export async function GET(req: NextRequest) {
 
   const [ingresos, egresos, porCategoria, topConceptos, movimientosMeses] =
     await Promise.all([
-      // Totales del mes: ingresos
       prisma.movimiento.aggregate({
         where: { userId, tipo: "INGRESO", fecha: { gte: startDate, lt: endDate } },
-        _sum: { monto: true, presupuesto: true },
+        _sum: { monto: true },
       }),
-      // Totales del mes: egresos
       prisma.movimiento.aggregate({
         where: { userId, tipo: "EGRESO", fecha: { gte: startDate, lt: endDate } },
-        _sum: { monto: true, presupuesto: true },
+        _sum: { monto: true },
       }),
-      // Por categoría del mes
       prisma.movimiento.groupBy({
         by: ["tipo", "categoria"],
         where: { userId, fecha: { gte: startDate, lt: endDate } },
-        _sum: { monto: true, presupuesto: true },
+        _sum: { monto: true },
         orderBy: { _sum: { monto: "desc" } },
       }),
-      // Top 5 conceptos con mayor egreso
       prisma.movimiento.groupBy({
         by: ["concepto"],
         where: { userId, tipo: "EGRESO", fecha: { gte: startDate, lt: endDate } },
@@ -48,7 +44,6 @@ export async function GET(req: NextRequest) {
         orderBy: { _sum: { monto: "desc" } },
         take: 5,
       }),
-      // Últimos 12 meses para evolución
       prisma.movimiento.findMany({
         where: {
           userId,
@@ -58,7 +53,6 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-  // Agrupar evolución por mes
   const evolucionMap: Record<string, { mes: string; ingresos: number; egresos: number }> = {};
   for (const m of movimientosMeses) {
     const key = `${m.fecha.getFullYear()}-${String(m.fecha.getMonth() + 1).padStart(2, "0")}`;
@@ -81,13 +75,10 @@ export async function GET(req: NextRequest) {
     ingresos: totalIngresos,
     egresos: totalEgresos,
     saldo: totalIngresos - totalEgresos,
-    presupuestoIngresos: Number(ingresos._sum.presupuesto ?? 0),
-    presupuestoEgresos: Number(egresos._sum.presupuesto ?? 0),
     porCategoria: porCategoria.map((c) => ({
       tipo: c.tipo,
       categoria: c.categoria,
       monto: Number(c._sum.monto ?? 0),
-      presupuesto: Number(c._sum.presupuesto ?? 0),
     })),
     topConceptos: topConceptos.map((c) => ({
       concepto: c.concepto,

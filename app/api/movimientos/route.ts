@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = req.nextUrl;
-  const mes = searchParams.get("mes"); // "2024-07"
+  const mes = searchParams.get("mes");
   const tipo = searchParams.get("tipo") as Tipo | null;
   const categoria = searchParams.get("categoria");
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
@@ -84,7 +84,6 @@ export async function POST(req: NextRequest) {
         tipo: data.tipo,
         categoria: data.categoria,
         concepto: data.concepto,
-        presupuesto: data.presupuesto ?? null,
         monto: data.monto,
       },
     });

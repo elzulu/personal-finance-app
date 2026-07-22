@@ -37,7 +37,6 @@ export function MovimientoForm({
       tipo: "EGRESO",
       categoria: "",
       concepto: "",
-      presupuesto: null,
       monto: undefined,
       ...defaultValues,
     },
@@ -46,7 +45,6 @@ export function MovimientoForm({
   const tipo = watch("tipo");
   const categorias = CATEGORIAS_POR_TIPO[tipo] ?? [];
 
-  // Reset categoría cuando cambia el tipo
   useEffect(() => {
     setValue("categoria", "");
   }, [tipo, setValue]);
@@ -58,7 +56,6 @@ export function MovimientoForm({
       tipo: "EGRESO",
       categoria: "",
       concepto: "",
-      presupuesto: null,
       monto: undefined,
     });
   }
@@ -141,35 +138,6 @@ export function MovimientoForm({
           />
           {errors.concepto && (
             <p className={errorClass}>{errors.concepto.message}</p>
-          )}
-        </div>
-
-        {/* Presupuesto */}
-        <div className="col-span-2">
-          <label className={labelClass}>
-            Presupuesto (opcional)
-          </label>
-          <Controller
-            name="presupuesto"
-            control={control}
-            render={({ field }) => (
-              <input
-                type="number"
-                min="0"
-                step="1"
-                placeholder="Monto presupuestado"
-                className={inputClass}
-                value={field.value ?? ""}
-                onChange={(e) =>
-                  field.onChange(
-                    e.target.value === "" ? null : Number(e.target.value)
-                  )
-                }
-              />
-            )}
-          />
-          {errors.presupuesto && (
-            <p className={errorClass}>{errors.presupuesto.message}</p>
           )}
         </div>
       </div>

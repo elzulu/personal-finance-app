@@ -10,7 +10,6 @@ interface Movimiento {
   tipo: "INGRESO" | "EGRESO";
   categoria: string;
   concepto: string;
-  presupuesto: string | null;
   monto: string;
 }
 
@@ -56,7 +55,6 @@ export function EditMovimientoModal({ movimiento, onClose, onSaved }: EditModalP
             tipo: movimiento.tipo,
             categoria: movimiento.categoria,
             concepto: movimiento.concepto,
-            presupuesto: movimiento.presupuesto ? Number(movimiento.presupuesto) : null,
             monto: Number(movimiento.monto),
           }}
           onSubmit={handleSubmit}

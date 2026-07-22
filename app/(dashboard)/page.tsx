@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ResumenCards } from "@/components/dashboard/ResumenCards";
-import { PresupuestoVsReal } from "@/components/dashboard/PresupuestoVsReal";
 import { GastoPorCategoria } from "@/components/charts/GastoPorCategoria";
 import { EvolucionMensual } from "@/components/charts/EvolucionMensual";
 import { TopConceptos } from "@/components/charts/TopConceptos";
@@ -17,7 +16,7 @@ interface Resumen {
   ingresos: number;
   egresos: number;
   saldo: number;
-  porCategoria: { tipo: string; categoria: string; monto: number; presupuesto: number }[];
+  porCategoria: { tipo: string; categoria: string; monto: number }[];
   topConceptos: { concepto: string; monto: number }[];
   evolucion: { mes: string; ingresos: number; egresos: number }[];
 }
@@ -55,7 +54,6 @@ export default function DashboardPage() {
     }
     setFormSuccess(true);
     setTimeout(() => setFormSuccess(false), 2500);
-    // Refetch resumen si el movimiento es del mes seleccionado
     const movFecha = new Date(data.fecha);
     const movMes = `${movFecha.getFullYear()}-${String(movFecha.getMonth() + 1).padStart(2, "0")}`;
     if (movMes === mes) {
@@ -68,7 +66,6 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      {/* Header con selector de mes */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
@@ -84,7 +81,6 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Tarjetas de resumen */}
       {loading ? (
         <div className="flex justify-center py-10">
           <LoadingSpinner size="lg" />
@@ -97,19 +93,15 @@ export default function DashboardPage() {
             saldo={resumen.saldo}
           />
 
-          {/* Gráficas */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <GastoPorCategoria data={egresosData} />
             <TopConceptos data={resumen.topConceptos} />
           </div>
 
           <EvolucionMensual data={resumen.evolucion} />
-
-          <PresupuestoVsReal data={resumen.porCategoria} />
         </>
       ) : null}
 
-      {/* Formulario de registro rápido */}
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-gray-700 mb-4">
           Registrar movimiento

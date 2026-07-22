@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && npm show next@14 version 2>&1 | tail -1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && npm show recharts@3 version 2>&1 | tail -1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && npx prisma generate 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && npx next build 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && npx prisma db push 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && DATABASE_URL=\"postgresql://neondb_owner:npg_19QnzWLTVbhR@ep-aged-cell-au2kq4dc.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx prisma db push 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && DATABASE_URL=\"postgresql://neondb_owner:npg_19QnzWLTVbhR@ep-aged-cell-au2kq4dc.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require\" npm run db:seed 2>&1)",
+      "Bash(openssl rand:*)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && vercel link --yes --project personal-finance-app 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && vercel link --yes --project personal-finance-app --scope josemanuwlz-4451s-projects 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && echo \"postgresql://neondb_owner:npg_19QnzWLTVbhR@ep-aged-cell-au2kq4dc.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require\" | vercel env add DATABASE_URL production --scope josemanuwlz-4451s-projects 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && echo \"mpd2eBMkSy6SQ6OoLJc1Khng17hCrylCtIQH1jqr2c0=\" | vercel env add NEXTAUTH_SECRET production --scope josemanuwlz-4451s-projects 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && vercel deploy --prod --scope josemanuwlz-4451s-projects 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && echo \"https://personal-finance-app-ten-phi.vercel.app\" | vercel env add NEXTAUTH_URL production --scope josemanuwlz-4451s-projects 2>&1)",
+      "Bash(cd \"D:\\\\Proyectos_Programacion\\\\personal-finance-app\" && DATABASE_URL=\"postgresql://neondb_owner:npg_19QnzWLTVbhR@ep-aged-cell-au2kq4dc.c-10.us-east-1.aws.neon.tech/neondb?sslmode=require\" npx prisma db push --accept-data-loss 2>&1)"
+    ]
+  }
+}
