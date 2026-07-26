@@ -63,17 +63,17 @@ export default function FamiliaPage() {
   return (
     <div className="space-y-5 max-w-lg">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Miembros del hogar</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <h1 className="text-xl font-bold text-white">Miembros del hogar</h1>
+        <p className="text-sm text-slate-400 mt-0.5">
           Agrega los integrantes de tu familia para asignarles ingresos y egresos.
         </p>
       </div>
 
       {/* Agregar miembro */}
       <Card className="p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Agregar miembro</h2>
+        <h2 className="text-sm font-semibold text-slate-200 mb-3">Agregar miembro</h2>
         {success && (
-          <div className="mb-3 p-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          <div className="mb-3 p-2.5 bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 rounded-lg text-sm">
             Miembro agregado correctamente
           </div>
         )}
@@ -83,16 +83,16 @@ export default function FamiliaPage() {
               {...register("nombre")}
               type="text"
               placeholder="Nombre del miembro"
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2.5 border border-slate-700 bg-slate-950/60 text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
             {errors.nombre && (
-              <p className="text-red-500 text-xs mt-1">{errors.nombre.message}</p>
+              <p className="text-rose-400 text-xs mt-1">{errors.nombre.message}</p>
             )}
           </div>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+            className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
           >
             {isSubmitting ? "..." : "Agregar"}
           </button>
@@ -101,29 +101,29 @@ export default function FamiliaPage() {
 
       {/* Lista de miembros */}
       <Card className="p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Miembros</h2>
+        <h2 className="text-sm font-semibold text-slate-200 mb-3">Miembros</h2>
         {loading ? (
           <div className="flex justify-center py-6">
             <LoadingSpinner />
           </div>
         ) : miembros.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4 text-center">
+          <p className="text-sm text-slate-500 py-4 text-center">
             Aún no has agregado miembros
           </p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y divide-slate-800/70">
             {miembros.map((m) => (
               <li key={m.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400/20 to-emerald-400/20 text-cyan-300 flex items-center justify-center text-sm font-bold ring-1 ring-inset ring-cyan-400/20">
                     {m.nombre.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium text-gray-800">{m.nombre}</span>
+                  <span className="text-sm font-medium text-slate-200">{m.nombre}</span>
                 </div>
                 <button
                   onClick={() => handleDelete(m.id)}
                   disabled={deleting === m.id}
-                  className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+                  className="text-xs text-rose-400 hover:text-rose-300 font-medium disabled:opacity-50"
                 >
                   {deleting === m.id ? "..." : "Eliminar"}
                 </button>

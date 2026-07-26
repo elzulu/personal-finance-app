@@ -80,24 +80,32 @@ export default function LoginPage() {
     setLoading(false);
   }
 
+  const inputClass =
+    "w-full px-3 py-2.5 border border-slate-700 bg-slate-950/60 text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent";
+  const labelClass = "block text-sm font-medium text-slate-300 mb-1";
+  const errorClass = "text-rose-400 text-xs mt-1";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Finanzas Personales</h1>
-          <p className="text-gray-500 text-sm mt-1">Control de ingresos y egresos</p>
+          <div className="mx-auto mb-3 w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center text-slate-950 text-xl font-bold shadow-lg shadow-cyan-500/20">
+            $
+          </div>
+          <h1 className="text-2xl font-bold text-white">Finanzas Personales</h1>
+          <p className="text-slate-400 text-sm mt-1">Control de ingresos y egresos</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-slate-900/70 rounded-2xl shadow-lg shadow-black/20 border border-slate-800 backdrop-blur-sm p-6">
           {/* Tabs */}
-          <div className="flex rounded-lg bg-gray-100 p-1 mb-6">
+          <div className="flex rounded-lg bg-slate-950/60 p-1 mb-6">
             <button
               type="button"
               onClick={() => { setMode("login"); setError(null); }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 mode === "login"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-slate-800 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-300"
               }`}
             >
               Ingresar
@@ -107,8 +115,8 @@ export default function LoginPage() {
               onClick={() => { setMode("register"); setError(null); }}
               className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
                 mode === "register"
-                  ? "bg-white text-gray-900 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-slate-800 text-white shadow-sm"
+                  : "text-slate-500 hover:text-slate-300"
               }`}
             >
               Registrarse
@@ -116,7 +124,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-rose-400/10 border border-rose-400/20 text-rose-400 rounded-lg text-sm">
               {error}
             </div>
           )}
@@ -124,35 +132,31 @@ export default function LoginPage() {
           {mode === "login" ? (
             <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className={labelClass}>Email</label>
                 <input
                   {...loginForm.register("email")}
                   type="email"
                   autoComplete="email"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="tu@email.com"
                 />
                 {loginForm.formState.errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className={errorClass}>
                     {loginForm.formState.errors.email.message}
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contraseña
-                </label>
+                <label className={labelClass}>Contraseña</label>
                 <input
                   {...loginForm.register("password")}
                   type="password"
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="••••••••"
                 />
                 {loginForm.formState.errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className={errorClass}>
                     {loginForm.formState.errors.password.message}
                   </p>
                 )}
@@ -160,7 +164,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all"
               >
                 {loading ? "Ingresando..." : "Ingresar"}
               </button>
@@ -168,47 +172,41 @@ export default function LoginPage() {
           ) : (
             <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nombre (opcional)
-                </label>
+                <label className={labelClass}>Nombre (opcional)</label>
                 <input
                   {...registerForm.register("name")}
                   type="text"
                   autoComplete="name"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="Tu nombre"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
+                <label className={labelClass}>Email</label>
                 <input
                   {...registerForm.register("email")}
                   type="email"
                   autoComplete="email"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="tu@email.com"
                 />
                 {registerForm.formState.errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className={errorClass}>
                     {registerForm.formState.errors.email.message}
                   </p>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contraseña
-                </label>
+                <label className={labelClass}>Contraseña</label>
                 <input
                   {...registerForm.register("password")}
                   type="password"
                   autoComplete="new-password"
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                   placeholder="Mínimo 8 caracteres"
                 />
                 {registerForm.formState.errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className={errorClass}>
                     {registerForm.formState.errors.password.message}
                   </p>
                 )}
@@ -216,7 +214,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-colors"
+                className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all"
               >
                 {loading ? "Registrando..." : "Crear cuenta"}
               </button>

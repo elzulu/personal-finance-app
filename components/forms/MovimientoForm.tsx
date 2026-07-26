@@ -70,9 +70,9 @@ export function MovimientoForm({
   }
 
   const inputClass =
-    "w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
-  const errorClass = "text-red-500 text-xs mt-1";
+    "w-full px-3 py-2.5 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent bg-slate-950/60 text-slate-100 [color-scheme:dark]";
+  const labelClass = "block text-sm font-medium text-slate-300 mb-1";
+  const errorClass = "text-rose-400 text-xs mt-1";
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
@@ -180,7 +180,7 @@ export function MovimientoForm({
       <button
         type="submit"
         disabled={isSubmitting || isLoading}
-        className="mt-4 w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-sm font-semibold transition-colors"
+        className="mt-4 w-full py-3 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-xl text-sm font-semibold transition-all"
       >
         {isSubmitting || isLoading ? "Guardando..." : submitLabel}
       </button>

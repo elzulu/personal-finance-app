@@ -15,7 +15,7 @@ export function TopConceptos({ data }: { data: ConceptoData[] }) {
 
   return (
     <Card className="p-4">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">
+      <h2 className="text-sm font-semibold text-slate-200 mb-4">
         Top conceptos (egresos)
       </h2>
       <div className="space-y-2.5">
@@ -25,18 +25,18 @@ export function TopConceptos({ data }: { data: ConceptoData[] }) {
             <div key={item.concepto}>
               <div className="flex justify-between items-center mb-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-400 w-4">{i + 1}</span>
-                  <span className="text-sm text-gray-700 truncate max-w-[160px]">
+                  <span className="text-xs font-bold text-slate-500 w-4">{i + 1}</span>
+                  <span className="text-sm text-slate-300 truncate max-w-[160px]">
                     {item.concepto}
                   </span>
                 </div>
-                <span className="text-sm font-semibold text-gray-800">
+                <span className="text-sm font-semibold text-slate-200">
                   {formatCOP(item.monto)}
                 </span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-1.5">
+              <div className="w-full bg-slate-800 rounded-full h-1.5">
                 <div
-                  className="h-1.5 rounded-full bg-red-400"
+                  className="h-1.5 rounded-full bg-rose-400"
                   style={{ width: `${pct}%` }}
                 />
               </div>

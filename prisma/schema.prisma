@@ -15,6 +15,7 @@ model User {
   createdAt    DateTime     @default(now())
   movimientos  Movimiento[]
   miembros     Miembro[]
+  deudas       Deuda[]
 }
 
 model Miembro {
@@ -24,6 +25,7 @@ model Miembro {
   nombre      String
   createdAt   DateTime     @default(now())
   movimientos Movimiento[]
+  deudas      Deuda[]
 
   @@index([userId])
 }
@@ -31,6 +33,30 @@ model Miembro {
 enum Tipo {
   INGRESO
   EGRESO
+}
+
+enum TipoDeuda {
+  TARJETA_CREDITO
+  ADDI
+  SISTECREDITO
+  PRESTAMO_BANCARIO
+  OTRO
+}
+
+model Deuda {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  miembroId   String?
+  miembro     Miembro?  @relation(fields: [miembroId], references: [id])
+  tipo        TipoDeuda
+  descripcion String?
+  monto       Decimal   @db.Decimal(12, 2)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, miembroId])
 }
 
 model Movimiento {

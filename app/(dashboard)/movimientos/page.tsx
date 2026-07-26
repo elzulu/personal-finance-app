@@ -44,19 +44,19 @@ export default function MovimientosPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Movimientos</h1>
-          <p className="text-sm text-gray-500 capitalize mt-0.5">{getMesLabel(mes)}</p>
+          <h1 className="text-xl font-bold text-white">Movimientos</h1>
+          <p className="text-sm text-slate-400 capitalize mt-0.5">{getMesLabel(mes)}</p>
         </div>
         <div className="flex gap-2">
           <input
             type="month"
             value={mes}
             onChange={(e) => setMes(e.target.value)}
-            className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-slate-700 bg-slate-900 text-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 [color-scheme:dark]"
           />
           <button
             onClick={() => (window.location.href = `/api/export?mes=${mes}`)}
-            className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-gray-700"
+            className="px-3 py-1.5 text-sm border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors text-slate-300"
           >
             Exportar CSV
           </button>
@@ -68,9 +68,9 @@ export default function MovimientosPage() {
       </Card>
 
       <Card className="p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-4">Nuevo movimiento</h2>
+        <h2 className="text-sm font-semibold text-slate-200 mb-4">Nuevo movimiento</h2>
         {formSuccess && (
-          <div className="mb-3 p-2.5 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+          <div className="mb-3 p-2.5 bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 rounded-lg text-sm">
             Movimiento guardado correctamente
           </div>
         )}

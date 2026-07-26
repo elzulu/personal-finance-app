@@ -4,9 +4,9 @@ interface BadgeProps {
 }
 
 const variants = {
-  ingreso: "bg-green-100 text-green-700",
-  egreso: "bg-red-100 text-red-700",
-  neutral: "bg-gray-100 text-gray-700",
+  ingreso: "bg-emerald-400/10 text-emerald-400 ring-1 ring-inset ring-emerald-400/20",
+  egreso: "bg-rose-400/10 text-rose-400 ring-1 ring-inset ring-rose-400/20",
+  neutral: "bg-slate-400/10 text-slate-300 ring-1 ring-inset ring-slate-400/20",
 };
 
 export function Badge({ children, variant = "neutral" }: BadgeProps) {

@@ -4,6 +4,7 @@ export const CATEGORIAS_POR_TIPO: Record<Tipo, string[]> = {
   INGRESO: ["Sueldo", "Negocio", "Inversiones", "Arriendo", "Bonificaciones", "Otro"],
   EGRESO: [
     "Vivienda",
+    "Servicios",
     "Alimentación",
     "Transporte",
     "Salud",

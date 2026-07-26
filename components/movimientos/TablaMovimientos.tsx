@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { EditMovimientoModal } from "./EditMovimientoModal";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
+import { getCategoriaIcono } from "@/lib/categoriaIcons";
 
 interface Miembro {
   id: string;
@@ -31,16 +32,17 @@ interface Pagination {
 }
 
 interface TablaMovimientosProps {
-  mes: string;
+  mes?: string;
   miembros: Miembro[];
+  fixedTipo?: "INGRESO" | "EGRESO";
+  fixedCategoria?: string;
 }
 
-const TODAS_CATEGORIAS = [
-  ...CATEGORIAS_POR_TIPO.INGRESO,
-  ...CATEGORIAS_POR_TIPO.EGRESO,
-];
+const TODAS_CATEGORIAS = Array.from(
+  new Set([...CATEGORIAS_POR_TIPO.INGRESO, ...CATEGORIAS_POR_TIPO.EGRESO])
+);
 
-export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
+export function TablaMovimientos({ mes, miembros, fixedTipo, fixedCategoria }: TablaMovimientosProps) {
   const [data, setData] = useState<Movimiento[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,14 +72,14 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
       setLoading(true);
       const s = stateRef.current;
       const params = new URLSearchParams({
-        mes,
         page: String(overrides?.page ?? s.page),
         limit: "25",
         orderBy: overrides?.orderBy ?? s.orderBy,
         order: overrides?.order ?? s.order,
       });
-      const tipo = overrides?.tipo !== undefined ? overrides.tipo : s.filterTipo;
-      const categoria = overrides?.categoria !== undefined ? overrides.categoria : s.filterCategoria;
+      if (mes) params.set("mes", mes);
+      const tipo = fixedTipo ?? (overrides?.tipo !== undefined ? overrides.tipo : s.filterTipo);
+      const categoria = fixedCategoria ?? (overrides?.categoria !== undefined ? overrides.categoria : s.filterCategoria);
       const miembroId = overrides?.miembroId !== undefined ? overrides.miembroId : s.filterMiembro;
       if (tipo) params.set("tipo", tipo);
       if (categoria) params.set("categoria", categoria);
@@ -92,7 +94,7 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
         setLoading(false);
       }
     },
-    [mes]
+    [mes, fixedTipo, fixedCategoria]
   );
 
   useEffect(() => {
@@ -126,43 +128,47 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
   }
 
   function SortIcon({ field }: { field: string }) {
-    if (orderBy !== field) return <span className="text-gray-300 ml-1">↕</span>;
-    return <span className="ml-1">{order === "desc" ? "↓" : "↑"}</span>;
+    if (orderBy !== field) return <span className="text-slate-600 ml-1">↕</span>;
+    return <span className="ml-1 text-cyan-400">{order === "desc" ? "↓" : "↑"}</span>;
   }
 
   const thClass =
-    "px-3 py-2.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap";
+    "px-3 py-2.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap";
 
   return (
     <div>
       {/* Filtros */}
       <div className="flex flex-wrap gap-2 mb-3">
-        <select
-          value={filterTipo}
-          onChange={(e) => setFilterTipo(e.target.value as typeof filterTipo)}
-          className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todos los tipos</option>
-          <option value="INGRESO">Ingreso</option>
-          <option value="EGRESO">Egreso</option>
-        </select>
+        {!fixedTipo && (
+          <select
+            value={filterTipo}
+            onChange={(e) => setFilterTipo(e.target.value as typeof filterTipo)}
+            className="text-sm border border-slate-700 rounded-lg px-2 py-1.5 bg-slate-900 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="">Todos los tipos</option>
+            <option value="INGRESO">Ingreso</option>
+            <option value="EGRESO">Egreso</option>
+          </select>
+        )}
 
-        <select
-          value={filterCategoria}
-          onChange={(e) => setFilterCategoria(e.target.value)}
-          className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">Todas las categorías</option>
-          {TODAS_CATEGORIAS.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+        {!fixedCategoria && (
+          <select
+            value={filterCategoria}
+            onChange={(e) => setFilterCategoria(e.target.value)}
+            className="text-sm border border-slate-700 rounded-lg px-2 py-1.5 bg-slate-900 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+          >
+            <option value="">Todas las categorías</option>
+            {TODAS_CATEGORIAS.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+        )}
 
         {miembros.length > 0 && (
           <select
             value={filterMiembro}
             onChange={(e) => setFilterMiembro(e.target.value)}
-            className="text-sm border border-gray-300 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="text-sm border border-slate-700 rounded-lg px-2 py-1.5 bg-slate-900 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
             <option value="">Todos los miembros</option>
             <option value="sin_asignar">Sin asignar</option>
@@ -174,7 +180,7 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
 
         <button
           onClick={handleFilter}
-          className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-3 py-1.5 bg-cyan-500 text-slate-950 text-sm font-semibold rounded-lg hover:bg-cyan-400 transition-colors"
         >
           Filtrar
         </button>
@@ -186,34 +192,34 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
+          <div className="overflow-x-auto rounded-xl border border-slate-800 scrollbar-thin">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-slate-900/80 border-b border-slate-800">
                 <tr>
-                  <th className={`${thClass} cursor-pointer hover:text-gray-800`} onClick={() => handleSort("fecha")}>
+                  <th className={`${thClass} cursor-pointer hover:text-slate-300`} onClick={() => handleSort("fecha")}>
                     Fecha <SortIcon field="fecha" />
                   </th>
                   <th className={thClass}>Tipo</th>
                   <th className={thClass}>Categoría</th>
                   <th className={thClass}>Concepto</th>
                   {miembros.length > 0 && <th className={thClass}>Miembro</th>}
-                  <th className={`${thClass} cursor-pointer hover:text-gray-800 text-right`} onClick={() => handleSort("monto")}>
+                  <th className={`${thClass} cursor-pointer hover:text-slate-300 text-right`} onClick={() => handleSort("monto")}>
                     Monto <SortIcon field="monto" />
                   </th>
                   <th className={thClass} />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-800/70">
                 {data.length === 0 && (
                   <tr>
-                    <td colSpan={miembros.length > 0 ? 7 : 6} className="px-4 py-8 text-center text-gray-400 text-sm">
+                    <td colSpan={miembros.length > 0 ? 7 : 6} className="px-4 py-8 text-center text-slate-500 text-sm">
                       Sin movimientos para los filtros seleccionados
                     </td>
                   </tr>
                 )}
                 {data.map((m) => (
-                  <tr key={m.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-3 py-2.5 text-gray-500 whitespace-nowrap">
+                  <tr key={m.id} className="hover:bg-slate-800/40 transition-colors">
+                    <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">
                       {formatDate(m.fecha)}
                     </td>
                     <td className="px-3 py-2.5">
@@ -221,25 +227,30 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
                         {m.tipo === "INGRESO" ? "Ingreso" : "Egreso"}
                       </Badge>
                     </td>
-                    <td className="px-3 py-2.5 text-gray-600">{m.categoria}</td>
-                    <td className="px-3 py-2.5 text-gray-800 max-w-[160px] truncate">{m.concepto}</td>
+                    <td className="px-3 py-2.5 text-slate-300">
+                      <span className="inline-flex items-center gap-1.5">
+                        <span aria-hidden>{getCategoriaIcono(m.categoria)}</span>
+                        {m.categoria}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-200 max-w-[160px] truncate">{m.concepto}</td>
                     {miembros.length > 0 && (
-                      <td className="px-3 py-2.5 text-gray-500 text-xs">
-                        {m.miembro?.nombre ?? <span className="text-gray-300">—</span>}
+                      <td className="px-3 py-2.5 text-slate-500 text-xs">
+                        {m.miembro?.nombre ?? <span className="text-slate-700">—</span>}
                       </td>
                     )}
-                    <td className={`px-3 py-2.5 text-right font-semibold whitespace-nowrap ${m.tipo === "INGRESO" ? "text-green-600" : "text-gray-800"}`}>
+                    <td className={`px-3 py-2.5 text-right font-semibold whitespace-nowrap ${m.tipo === "INGRESO" ? "text-emerald-400" : "text-slate-200"}`}>
                       {formatCOP(Number(m.monto))}
                     </td>
                     <td className="px-3 py-2.5">
                       <div className="flex gap-2 justify-end">
-                        <button onClick={() => setEditTarget(m)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                        <button onClick={() => setEditTarget(m)} className="text-xs text-cyan-400 hover:text-cyan-300 font-medium">
                           Editar
                         </button>
                         <button
                           onClick={() => handleDelete(m.id)}
                           disabled={deleting === m.id}
-                          className="text-xs text-red-500 hover:text-red-700 font-medium disabled:opacity-50"
+                          className="text-xs text-rose-400 hover:text-rose-300 font-medium disabled:opacity-50"
                         >
                           {deleting === m.id ? "..." : "Eliminar"}
                         </button>
@@ -253,18 +264,18 @@ export function TablaMovimientos({ mes, miembros }: TablaMovimientosProps) {
 
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between mt-3 text-sm">
-              <span className="text-gray-500">{pagination.total} movimientos</span>
+              <span className="text-slate-500">{pagination.total} movimientos</span>
               <div className="flex gap-1">
                 <button
                   disabled={page === 1}
                   onClick={() => { const p = page - 1; setPage(p); fetchData({ page: p }); }}
-                  className="px-3 py-1 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+                  className="px-3 py-1 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-40 hover:bg-slate-800"
                 >←</button>
-                <span className="px-3 py-1 text-gray-600">{page} / {pagination.totalPages}</span>
+                <span className="px-3 py-1 text-slate-400">{page} / {pagination.totalPages}</span>
                 <button
                   disabled={page === pagination.totalPages}
                   onClick={() => { const p = page + 1; setPage(p); fetchData({ page: p }); }}
-                  className="px-3 py-1 rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
+                  className="px-3 py-1 rounded-lg border border-slate-700 text-slate-300 disabled:opacity-40 hover:bg-slate-800"
                 >→</button>
               </div>
             </div>

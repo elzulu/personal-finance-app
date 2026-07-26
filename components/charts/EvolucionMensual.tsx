@@ -31,10 +31,10 @@ export function EvolucionMensual({ data }: { data: MesData[] }) {
   if (!data || data.length === 0) {
     return (
       <Card className="p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-2">
+        <h2 className="text-sm font-semibold text-slate-200 mb-2">
           Evolución mensual
         </h2>
-        <p className="text-sm text-gray-400 py-6 text-center">Sin datos disponibles</p>
+        <p className="text-sm text-slate-500 py-6 text-center">Sin datos disponibles</p>
       </Card>
     );
   }
@@ -46,20 +46,20 @@ export function EvolucionMensual({ data }: { data: MesData[] }) {
 
   return (
     <Card className="p-4">
-      <h2 className="text-sm font-semibold text-gray-700 mb-4">
+      <h2 className="text-sm font-semibold text-slate-200 mb-4">
         Evolución últimos meses
       </h2>
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis
             dataKey="label"
-            tick={{ fontSize: 11, fill: "#6b7280" }}
+            tick={{ fontSize: 11, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 10, fill: "#6b7280" }}
+            tick={{ fontSize: 10, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
             tickFormatter={(v) =>
@@ -72,6 +72,15 @@ export function EvolucionMensual({ data }: { data: MesData[] }) {
             width={45}
           />
           <Tooltip
+            contentStyle={{
+              backgroundColor: "#0f172a",
+              border: "1px solid #1e293b",
+              borderRadius: 12,
+              fontSize: 12,
+            }}
+            itemStyle={{ color: "#e2e8f0" }}
+            labelStyle={{ color: "#94a3b8" }}
+            cursor={{ fill: "rgba(148, 163, 184, 0.06)" }}
             formatter={(value, name) => [
               formatCOP(typeof value === "number" ? value : 0),
               name === "ingresos" ? "Ingresos" : "Egresos",
@@ -79,13 +88,13 @@ export function EvolucionMensual({ data }: { data: MesData[] }) {
           />
           <Legend
             formatter={(value) => (
-              <span className="text-xs text-gray-600">
+              <span className="text-xs text-slate-400">
                 {value === "ingresos" ? "Ingresos" : "Egresos"}
               </span>
             )}
           />
-          <Bar dataKey="ingresos" fill="#22c55e" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="egresos" fill="#ef4444" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="ingresos" fill="#34d399" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="egresos" fill="#fb7185" radius={[3, 3, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </Card>
