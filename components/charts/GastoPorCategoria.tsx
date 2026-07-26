@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import { formatCOP } from "@/lib/formatters";
 import { Card } from "@/components/ui/Card";
 
@@ -43,7 +36,7 @@ export function GastoPorCategoria({ data }: { data: CategoriaData[] }) {
           <span className="block text-base font-bold text-white">{formatCOP(total)}</span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={220}>
+      <ResponsiveContainer width="100%" height={180}>
         <PieChart>
           <Pie
             data={data}
@@ -51,8 +44,8 @@ export function GastoPorCategoria({ data }: { data: CategoriaData[] }) {
             nameKey="categoria"
             cx="50%"
             cy="50%"
-            innerRadius={55}
-            outerRadius={85}
+            innerRadius={50}
+            outerRadius={75}
             paddingAngle={2}
             stroke="none"
             isAnimationActive={false}
@@ -78,23 +71,25 @@ export function GastoPorCategoria({ data }: { data: CategoriaData[] }) {
               "Monto",
             ]}
           />
-          <Legend
-            iconType="circle"
-            iconSize={8}
-            formatter={(value, entry) => {
-              const monto = (entry as { payload?: { monto?: number } })?.payload?.monto;
-              return (
-                <span className="text-xs text-slate-400">
-                  {value}
-                  {typeof monto === "number" && (
-                    <span className="text-slate-300 font-medium"> · {formatCOP(monto)}</span>
-                  )}
-                </span>
-              );
-            }}
-          />
         </PieChart>
       </ResponsiveContainer>
+
+      <ul className="mt-2 space-y-1.5">
+        {data.map((d, i) => (
+          <li key={d.categoria} className="flex items-center justify-between gap-3 text-xs">
+            <span className="flex items-center gap-1.5 min-w-0 text-slate-400">
+              <span
+                className="w-2 h-2 rounded-full shrink-0"
+                style={{ backgroundColor: COLORS[i % COLORS.length] }}
+              />
+              <span className="truncate">{d.categoria}</span>
+            </span>
+            <span className="text-slate-200 font-medium shrink-0 whitespace-nowrap">
+              {formatCOP(d.monto)}
+            </span>
+          </li>
+        ))}
+      </ul>
     </Card>
   );
 }

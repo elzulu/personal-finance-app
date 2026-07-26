@@ -1,15 +1,13 @@
 "use client";
 
 import {
-  ScatterChart,
-  Scatter,
+  ComposedChart,
+  Line,
   XAxis,
   YAxis,
-  ZAxis,
   Tooltip,
   CartesianGrid,
   ResponsiveContainer,
-  ReferenceLine,
 } from "recharts";
 import { formatCOP } from "@/lib/formatters";
 import { Card } from "@/components/ui/Card";
@@ -64,18 +62,15 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
       <h2 className="text-sm font-semibold text-slate-200 mb-1">Balance por mes</h2>
       <p className="text-xs text-slate-500 mb-4">Ingresos − Egresos de cada mes</p>
       <ResponsiveContainer width="100%" height={240}>
-        <ScatterChart margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+        <ComposedChart data={points} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
           <XAxis
             dataKey="label"
-            type="category"
-            allowDuplicatedCategory={false}
             tick={{ fontSize: 11, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
-            dataKey="saldo"
             tick={{ fontSize: 10, fill: "#64748b" }}
             axisLine={false}
             tickLine={false}
@@ -88,8 +83,6 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
             }
             width={45}
           />
-          <ZAxis range={[80, 80]} />
-          <ReferenceLine y={0} stroke="#334155" />
           <Tooltip
             cursor={{ strokeDasharray: "3 3", stroke: "#334155" }}
             contentStyle={{
@@ -102,8 +95,15 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
             labelStyle={{ color: "#94a3b8" }}
             formatter={(value) => [formatCOP(typeof value === "number" ? value : 0), "Saldo"]}
           />
-          <Scatter data={points} shape={BalanceDot} isAnimationActive={false} />
-        </ScatterChart>
+          <Line
+            dataKey="saldo"
+            stroke="#475569"
+            strokeWidth={2}
+            dot={BalanceDot}
+            activeDot={{ r: 7 }}
+            isAnimationActive={false}
+          />
+        </ComposedChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
         <span className="flex items-center gap-1.5">
