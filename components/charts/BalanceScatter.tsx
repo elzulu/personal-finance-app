@@ -100,17 +100,17 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
             }}
             itemStyle={{ color: "#e2e8f0" }}
             labelStyle={{ color: "#94a3b8" }}
-            formatter={(value) => [formatCOP(typeof value === "number" ? value : 0), "Balance"]}
+            formatter={(value) => [formatCOP(typeof value === "number" ? value : 0), "Saldo"]}
           />
           <Scatter data={points} shape={BalanceDot} isAnimationActive={false} />
         </ScatterChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" /> Balance positivo
+          <span className="w-2 h-2 rounded-full bg-emerald-400" /> Positivo
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-rose-400" /> Balance negativo
+          <span className="w-2 h-2 rounded-full bg-rose-400" /> Negativo
         </span>
       </div>
     </Card>
