@@ -93,8 +93,8 @@ export function EvolucionMensual({ data }: { data: MesData[] }) {
               </span>
             )}
           />
-          <Bar dataKey="ingresos" fill="#34d399" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="egresos" fill="#fb7185" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="ingresos" fill="#34d399" radius={[3, 3, 0, 0]} maxBarSize={48} isAnimationActive={false} />
+          <Bar dataKey="egresos" fill="#fb7185" radius={[3, 3, 0, 0]} maxBarSize={48} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
     </Card>
