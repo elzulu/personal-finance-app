@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MovimientoForm } from "@/components/forms/MovimientoForm";
 import { TablaMovimientos } from "@/components/movimientos/TablaMovimientos";
 import { MovimientoInput } from "@/lib/validations";
@@ -12,18 +12,37 @@ interface Miembro {
   nombre: string;
 }
 
+interface DeudaOption {
+  id: string;
+  tipo: string;
+  descripcion: string | null;
+  monto: string;
+  pagado: boolean;
+  miembroId: string | null;
+  miembro: { nombre: string } | null;
+}
+
 export default function MovimientosPage() {
   const [mes, setMes] = useState(getCurrentMesKey());
   const [formSuccess, setFormSuccess] = useState(false);
   const [tableKey, setTableKey] = useState(0);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
+  const [deudas, setDeudas] = useState<DeudaOption[]>([]);
+
+  const fetchDeudas = useCallback(async () => {
+    try {
+      const res = await fetch("/api/deudas");
+      if (res.ok) setDeudas(await res.json());
+    } catch {}
+  }, []);
 
   useEffect(() => {
     fetch("/api/miembros")
       .then((r) => r.json())
       .then(setMiembros)
       .catch(() => {});
-  }, []);
+    fetchDeudas();
+  }, [fetchDeudas]);
 
   async function handleNuevoMovimiento(data: MovimientoInput) {
     const res = await fetch("/api/movimientos", {
@@ -38,6 +57,8 @@ export default function MovimientosPage() {
     setFormSuccess(true);
     setTimeout(() => setFormSuccess(false), 2500);
     setTableKey((k) => k + 1);
+    // Actualizar saldos de deudas si se vinculó alguna
+    if (data.deudaId) fetchDeudas();
   }
 
   return (
@@ -64,7 +85,12 @@ export default function MovimientosPage() {
       </div>
 
       <Card className="p-4">
-        <TablaMovimientos key={`${mes}-${tableKey}`} mes={mes} miembros={miembros} />
+        <TablaMovimientos
+          key={`${mes}-${tableKey}`}
+          mes={mes}
+          miembros={miembros}
+          deudas={deudas}
+        />
       </Card>
 
       <Card className="p-4">
@@ -74,7 +100,7 @@ export default function MovimientosPage() {
             Movimiento guardado correctamente
           </div>
         )}
-        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} />
+        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} deudas={deudas} />
       </Card>
     </div>
   );

@@ -14,6 +14,16 @@ interface Miembro {
   nombre: string;
 }
 
+interface DeudaOption {
+  id: string;
+  tipo: string;
+  descripcion: string | null;
+  monto: string;
+  pagado: boolean;
+  miembroId: string | null;
+  miembro: { nombre: string } | null;
+}
+
 interface Resumen {
   mes: string;
   ingresos: number;
@@ -28,6 +38,7 @@ export default function DashboardPage() {
   const [mes, setMes] = useState(getCurrentMesKey());
   const [resumen, setResumen] = useState<Resumen | null>(null);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
+  const [deudas, setDeudas] = useState<DeudaOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [formSuccess, setFormSuccess] = useState(false);
 
@@ -51,6 +62,10 @@ export default function DashboardPage() {
       .then((r) => r.json())
       .then(setMiembros)
       .catch(() => {});
+    fetch("/api/deudas")
+      .then((r) => r.json())
+      .then(setDeudas)
+      .catch(() => {});
   }, []);
 
   async function handleNuevoMovimiento(data: MovimientoInput) {
@@ -68,6 +83,10 @@ export default function DashboardPage() {
     const movFecha = new Date(data.fecha);
     const movMes = `${movFecha.getFullYear()}-${String(movFecha.getMonth() + 1).padStart(2, "0")}`;
     if (movMes === mes) fetchResumen(mes);
+    // Refrescar saldos de deudas si se vinculó alguna
+    if (data.deudaId) {
+      fetch("/api/deudas").then((r) => r.json()).then(setDeudas).catch(() => {});
+    }
   }
 
   return (
@@ -111,7 +130,7 @@ export default function DashboardPage() {
             Movimiento guardado correctamente
           </div>
         )}
-        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} />
+        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} deudas={deudas} />
       </Card>
     </div>
   );

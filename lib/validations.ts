@@ -17,6 +17,7 @@ export const movimientoBaseSchema = z.object({
     })
     .positive("El monto debe ser mayor a 0"),
   miembroId: z.string().optional().nullable(),
+  deudaId: z.string().optional().nullable(),
 });
 
 export const movimientoSchema = movimientoBaseSchema.refine(

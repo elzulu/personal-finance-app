@@ -21,6 +21,7 @@ interface Deuda {
   tipo: string;
   descripcion: string | null;
   monto: string;
+  pagado: boolean;
   createdAt: string;
 }
 
@@ -74,7 +75,7 @@ export default function DeudasPage() {
     fetchDeudas();
   }
 
-  const total = useMemo(() => deudas.reduce((sum, d) => sum + Number(d.monto), 0), [deudas]);
+  const total = useMemo(() => deudas.filter((d) => !d.pagado).reduce((sum, d) => sum + Number(d.monto), 0), [deudas]);
 
   const porMiembro = useMemo(() => {
     const map = new Map<string, { nombre: string; monto: number }>();
@@ -154,13 +155,18 @@ export default function DeudasPage() {
             {deudas.map((d) => (
               <li key={d.id} className="flex items-center justify-between gap-3 py-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-xl bg-rose-400/10 text-rose-400 flex items-center justify-center text-base shrink-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 ${d.pagado ? "bg-emerald-400/10 text-emerald-400" : "bg-rose-400/10 text-rose-400"}`}>
                     {getTipoDeudaIcono(d.tipo)}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-200 truncate">
+                    <p className="text-sm font-medium text-slate-200 truncate flex items-center gap-2">
                       {getTipoDeudaLabel(d.tipo)}
                       {d.miembro && <span className="text-slate-500"> · {d.miembro.nombre}</span>}
+                      {d.pagado && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-400/15 text-emerald-400 uppercase tracking-wide">
+                          Pagada
+                        </span>
+                      )}
                     </p>
                     <p className="text-xs text-slate-500 truncate">
                       {d.descripcion || formatDate(d.createdAt)}
@@ -168,7 +174,7 @@ export default function DeudasPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-semibold text-rose-400 whitespace-nowrap">
+                  <span className={`text-sm font-semibold whitespace-nowrap ${d.pagado ? "text-emerald-400" : "text-rose-400"}`}>
                     {formatCOP(Number(d.monto))}
                   </span>
                   <button

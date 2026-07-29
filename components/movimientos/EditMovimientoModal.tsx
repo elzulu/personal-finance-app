@@ -9,6 +9,16 @@ interface Miembro {
   nombre: string;
 }
 
+interface DeudaOption {
+  id: string;
+  tipo: string;
+  descripcion: string | null;
+  monto: string;
+  pagado: boolean;
+  miembroId: string | null;
+  miembro: { nombre: string } | null;
+}
+
 interface Movimiento {
   id: string;
   fecha: string;
@@ -17,16 +27,18 @@ interface Movimiento {
   concepto: string;
   monto: string;
   miembroId: string | null;
+  deudaId: string | null;
 }
 
 interface EditModalProps {
   movimiento: Movimiento;
   miembros: Miembro[];
+  deudas?: DeudaOption[];
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function EditMovimientoModal({ movimiento, miembros, onClose, onSaved }: EditModalProps) {
+export function EditMovimientoModal({ movimiento, miembros, deudas = [], onClose, onSaved }: EditModalProps) {
   async function handleSubmit(data: MovimientoInput) {
     const res = await fetch(`/api/movimientos/${movimiento.id}`, {
       method: "PATCH",
@@ -64,10 +76,12 @@ export function EditMovimientoModal({ movimiento, miembros, onClose, onSaved }: 
             concepto: movimiento.concepto,
             monto: Number(movimiento.monto),
             miembroId: movimiento.miembroId,
+            deudaId: movimiento.deudaId,
           }}
           onSubmit={handleSubmit}
           submitLabel="Guardar cambios"
           miembros={miembros}
+          deudas={deudas}
         />
       </div>
     </div>

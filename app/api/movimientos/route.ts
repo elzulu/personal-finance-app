@@ -78,16 +78,42 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const data = movimientoSchema.parse(body);
 
+    const movimientoData = {
+      userId: session.user.id,
+      fecha: new Date(data.fecha),
+      tipo: data.tipo,
+      categoria: data.categoria,
+      concepto: data.concepto,
+      monto: data.monto,
+      miembroId: data.miembroId ?? null,
+      deudaId: data.deudaId ?? null,
+    };
+
+    if (data.deudaId) {
+      // Transacción: crear movimiento + ajustar saldo de la deuda
+      const movimiento = await prisma.$transaction(async (tx) => {
+        const deuda = await tx.deuda.findFirst({
+          where: { id: data.deudaId!, userId: session.user.id },
+        });
+        if (!deuda) throw new Error("Deuda no encontrada");
+
+        const nuevoMonto = Math.max(0, Number(deuda.monto) - data.monto);
+        await tx.deuda.update({
+          where: { id: data.deudaId! },
+          data: { monto: nuevoMonto, pagado: nuevoMonto === 0 },
+        });
+
+        return tx.movimiento.create({
+          data: movimientoData,
+          include: { miembro: { select: { id: true, nombre: true } } },
+        });
+      });
+
+      return NextResponse.json(movimiento, { status: 201 });
+    }
+
     const movimiento = await prisma.movimiento.create({
-      data: {
-        userId: session.user.id,
-        fecha: new Date(data.fecha),
-        tipo: data.tipo,
-        categoria: data.categoria,
-        concepto: data.concepto,
-        monto: data.monto,
-        miembroId: data.miembroId ?? null,
-      },
+      data: movimientoData,
       include: { miembro: { select: { id: true, nombre: true } } },
     });
 
@@ -95,6 +121,9 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json({ error: error.errors }, { status: 400 });
+    }
+    if (error instanceof Error && error.message === "Deuda no encontrada") {
+      return NextResponse.json({ error: error.message }, { status: 404 });
     }
     console.error(error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });

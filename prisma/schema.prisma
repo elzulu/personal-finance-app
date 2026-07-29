@@ -44,16 +44,18 @@ enum TipoDeuda {
 }
 
 model Deuda {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
   miembroId   String?
-  miembro     Miembro?  @relation(fields: [miembroId], references: [id])
+  miembro     Miembro?     @relation(fields: [miembroId], references: [id])
   tipo        TipoDeuda
   descripcion String?
-  monto       Decimal   @db.Decimal(12, 2)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  monto       Decimal      @db.Decimal(12, 2)
+  pagado      Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  movimientos Movimiento[]
 
   @@index([userId])
   @@index([userId, miembroId])
@@ -65,6 +67,8 @@ model Movimiento {
   user       User     @relation(fields: [userId], references: [id])
   miembroId  String?
   miembro    Miembro? @relation(fields: [miembroId], references: [id])
+  deudaId    String?
+  deuda      Deuda?   @relation(fields: [deudaId], references: [id], onDelete: SetNull)
   fecha      DateTime
   tipo       Tipo
   categoria  String
@@ -76,4 +80,5 @@ model Movimiento {
   @@index([userId, fecha])
   @@index([userId, tipo, categoria])
   @@index([userId, miembroId])
+  @@index([deudaId])
 }

@@ -1,15 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { movimientoSchema, MovimientoInput } from "@/lib/validations";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
-import { toInputDate } from "@/lib/formatters";
+import { toInputDate, formatCOP } from "@/lib/formatters";
+import { getTipoDeudaLabel } from "@/lib/tiposDeuda";
 
 interface Miembro {
   id: string;
   nombre: string;
+}
+
+interface DeudaOption {
+  id: string;
+  tipo: string;
+  descripcion: string | null;
+  monto: string;
+  pagado: boolean;
+  miembroId: string | null;
+  miembro: { nombre: string } | null;
 }
 
 interface MovimientoFormProps {
@@ -18,6 +29,7 @@ interface MovimientoFormProps {
   submitLabel?: string;
   isLoading?: boolean;
   miembros?: Miembro[];
+  deudas?: DeudaOption[];
 }
 
 export function MovimientoForm({
@@ -26,6 +38,7 @@ export function MovimientoForm({
   submitLabel = "Guardar",
   isLoading = false,
   miembros = [],
+  deudas = [],
 }: MovimientoFormProps) {
   const today = toInputDate(new Date());
 
@@ -46,16 +59,36 @@ export function MovimientoForm({
       concepto: "",
       monto: undefined,
       miembroId: null,
+      deudaId: null,
       ...defaultValues,
     },
   });
 
   const tipo = watch("tipo");
+  const categoria = watch("categoria");
+  const miembroId = watch("miembroId");
   const categorias = CATEGORIAS_POR_TIPO[tipo] ?? [];
 
   useEffect(() => {
     setValue("categoria", "");
   }, [tipo, setValue]);
+
+  // Limpiar la deuda vinculada al cambiar de categoría
+  useEffect(() => {
+    if (categoria !== "Deudas") {
+      setValue("deudaId", null);
+    }
+  }, [categoria, setValue]);
+
+  // Deudas disponibles: sin pagar y filtradas por miembro si se seleccionó uno
+  const deudasDisponibles = useMemo(() => {
+    return deudas.filter(
+      (d) => !d.pagado && (!miembroId || d.miembroId === miembroId)
+    );
+  }, [deudas, miembroId]);
+
+  const mostrarSelectorDeuda =
+    tipo === "EGRESO" && categoria === "Deudas" && deudasDisponibles.length > 0;
 
   async function handleFormSubmit(data: MovimientoInput) {
     await onSubmit(data);
@@ -66,6 +99,7 @@ export function MovimientoForm({
       concepto: "",
       monto: undefined,
       miembroId: null,
+      deudaId: null,
     });
   }
 
@@ -173,6 +207,55 @@ export function MovimientoForm({
                 </select>
               )}
             />
+          </div>
+        )}
+
+        {/* Deuda vinculada (solo cuando categoría = Deudas y hay deudas activas) */}
+        {mostrarSelectorDeuda && (
+          <div className="col-span-2">
+            <label className={labelClass}>
+              Deuda vinculada{" "}
+              <span className="text-slate-500 font-normal">(opcional)</span>
+            </label>
+            <Controller
+              name="deudaId"
+              control={control}
+              render={({ field }) => (
+                <select
+                  className={inputClass}
+                  value={field.value ?? ""}
+                  onChange={(e) =>
+                    field.onChange(e.target.value === "" ? null : e.target.value)
+                  }
+                >
+                  <option value="">Sin vincular</option>
+                  {deudasDisponibles.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {getTipoDeudaLabel(d.tipo)}
+                      {d.miembro ? ` · ${d.miembro.nombre}` : ""}
+                      {" — "}
+                      {formatCOP(Number(d.monto))} pendiente
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Al vincular, el saldo de la deuda se actualizará automáticamente.
+            </p>
+          </div>
+        )}
+
+        {/* Aviso cuando categoría = Deudas pero no hay deudas registradas */}
+        {tipo === "EGRESO" && categoria === "Deudas" && deudas.length === 0 && (
+          <div className="col-span-2">
+            <p className="text-xs text-slate-500">
+              Registra una deuda en el módulo{" "}
+              <a href="/deudas" className="text-cyan-400 hover:underline">
+                Deudas
+              </a>{" "}
+              para vincular este pago automáticamente.
+            </p>
           </div>
         )}
       </div>

@@ -13,6 +13,16 @@ interface Miembro {
   nombre: string;
 }
 
+interface DeudaOption {
+  id: string;
+  tipo: string;
+  descripcion: string | null;
+  monto: string;
+  pagado: boolean;
+  miembroId: string | null;
+  miembro: { nombre: string } | null;
+}
+
 interface Movimiento {
   id: string;
   fecha: string;
@@ -21,6 +31,7 @@ interface Movimiento {
   concepto: string;
   monto: string;
   miembroId: string | null;
+  deudaId: string | null;
   miembro: Miembro | null;
 }
 
@@ -34,6 +45,7 @@ interface Pagination {
 interface TablaMovimientosProps {
   mes?: string;
   miembros: Miembro[];
+  deudas?: DeudaOption[];
   fixedTipo?: "INGRESO" | "EGRESO";
   fixedCategoria?: string;
 }
@@ -42,7 +54,7 @@ const TODAS_CATEGORIAS = Array.from(
   new Set([...CATEGORIAS_POR_TIPO.INGRESO, ...CATEGORIAS_POR_TIPO.EGRESO])
 );
 
-export function TablaMovimientos({ mes, miembros, fixedTipo, fixedCategoria }: TablaMovimientosProps) {
+export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedCategoria }: TablaMovimientosProps) {
   const [data, setData] = useState<Movimiento[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
@@ -287,6 +299,7 @@ export function TablaMovimientos({ mes, miembros, fixedTipo, fixedCategoria }: T
         <EditMovimientoModal
           movimiento={editTarget}
           miembros={miembros}
+          deudas={deudas}
           onClose={() => setEditTarget(null)}
           onSaved={() => fetchData()}
         />
