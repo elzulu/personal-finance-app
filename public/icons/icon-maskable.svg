@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fondo a sangre completa (requerido para maskable) -->
+  <rect width="512" height="512" fill="#0f172a"/>
+  <!-- Contenido dentro del safe zone (128–384 px, el 75% central) -->
+  <rect x="128" y="318" width="60" height="96" rx="10" fill="#22d3ee"/>
+  <rect x="226" y="268" width="60" height="146" rx="10" fill="#34d399"/>
+  <rect x="324" y="198" width="60" height="216" rx="10" fill="#22d3ee" opacity="0.85"/>
+  <!-- Línea de tendencia -->
+  <polyline
+    points="158,298 256,248 354,178"
+    stroke="#f0fdf4"
+    stroke-width="12"
+    fill="none"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="354" cy="178" r="16" fill="#34d399"/>
+  <circle cx="158" cy="298" r="11" fill="#22d3ee"/>
+</svg>
