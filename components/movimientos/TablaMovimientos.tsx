@@ -62,6 +62,7 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
   const [filterTipo, setFilterTipo] = useState<"" | "INGRESO" | "EGRESO">("");
   const [filterCategoria, setFilterCategoria] = useState("");
   const [filterMiembro, setFilterMiembro] = useState("");
+  const [filterConcepto, setFilterConcepto] = useState("");
   const [orderBy, setOrderBy] = useState("fecha");
   const [order, setOrder] = useState<"asc" | "desc">("desc");
   const [page, setPage] = useState(1);
@@ -69,8 +70,10 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
   const [editTarget, setEditTarget] = useState<Movimiento | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
-  const stateRef = useRef({ page, orderBy, order, filterTipo, filterCategoria, filterMiembro });
-  stateRef.current = { page, orderBy, order, filterTipo, filterCategoria, filterMiembro };
+  const categoriaOptions = fixedTipo ? CATEGORIAS_POR_TIPO[fixedTipo] : TODAS_CATEGORIAS;
+
+  const stateRef = useRef({ page, orderBy, order, filterTipo, filterCategoria, filterMiembro, filterConcepto });
+  stateRef.current = { page, orderBy, order, filterTipo, filterCategoria, filterMiembro, filterConcepto };
 
   const fetchData = useCallback(
     async (overrides?: {
@@ -80,6 +83,7 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
       tipo?: string;
       categoria?: string;
       miembroId?: string;
+      concepto?: string;
     }) => {
       setLoading(true);
       const s = stateRef.current;
@@ -93,9 +97,11 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
       const tipo = fixedTipo ?? (overrides?.tipo !== undefined ? overrides.tipo : s.filterTipo);
       const categoria = fixedCategoria ?? (overrides?.categoria !== undefined ? overrides.categoria : s.filterCategoria);
       const miembroId = overrides?.miembroId !== undefined ? overrides.miembroId : s.filterMiembro;
+      const concepto = overrides?.concepto !== undefined ? overrides.concepto : s.filterConcepto;
       if (tipo) params.set("tipo", tipo);
       if (categoria) params.set("categoria", categoria);
       if (miembroId) params.set("miembroId", miembroId);
+      if (concepto) params.set("concepto", concepto);
 
       try {
         const res = await fetch(`/api/movimientos?${params}`);
@@ -114,14 +120,15 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
     setFilterTipo("");
     setFilterCategoria("");
     setFilterMiembro("");
+    setFilterConcepto("");
     setOrderBy("fecha");
     setOrder("desc");
-    fetchData({ page: 1, tipo: "", categoria: "", miembroId: "", orderBy: "fecha", order: "desc" });
+    fetchData({ page: 1, tipo: "", categoria: "", miembroId: "", concepto: "", orderBy: "fecha", order: "desc" });
   }, [mes, fetchData]);
 
   function handleFilter() {
     setPage(1);
-    fetchData({ page: 1, tipo: filterTipo, categoria: filterCategoria, miembroId: filterMiembro });
+    fetchData({ page: 1, tipo: filterTipo, categoria: filterCategoria, miembroId: filterMiembro, concepto: filterConcepto });
   }
 
   function handleSort(field: string) {
@@ -170,11 +177,20 @@ export function TablaMovimientos({ mes, miembros, deudas = [], fixedTipo, fixedC
             className="text-sm border border-slate-700 rounded-lg px-2 py-1.5 bg-slate-900 text-slate-200 focus:outline-none focus:ring-2 focus:ring-cyan-400"
           >
             <option value="">Todas las categorías</option>
-            {TODAS_CATEGORIAS.map((c) => (
+            {categoriaOptions.map((c) => (
               <option key={c} value={c}>{c}</option>
             ))}
           </select>
         )}
+
+        <input
+          type="text"
+          value={filterConcepto}
+          onChange={(e) => setFilterConcepto(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleFilter()}
+          placeholder="Buscar concepto..."
+          className="text-sm border border-slate-700 rounded-lg px-2 py-1.5 bg-slate-900 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+        />
 
         {miembros.length > 0 && (
           <select

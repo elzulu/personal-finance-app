@@ -6,7 +6,17 @@ interface ConceptoData {
   monto: number;
 }
 
-export function TopConceptos({ data }: { data: ConceptoData[] }) {
+interface TopConceptosProps {
+  data: ConceptoData[];
+  titulo?: string;
+  barColorClass?: string;
+}
+
+export function TopConceptos({
+  data,
+  titulo = "Top conceptos (egresos)",
+  barColorClass = "bg-rose-400",
+}: TopConceptosProps) {
   if (!data || data.length === 0) {
     return null;
   }
@@ -16,7 +26,7 @@ export function TopConceptos({ data }: { data: ConceptoData[] }) {
   return (
     <Card className="p-4">
       <h2 className="text-sm font-semibold text-slate-200 mb-4">
-        Top conceptos (egresos)
+        {titulo}
       </h2>
       <div className="space-y-2.5">
         {data.map((item, i) => {
@@ -36,7 +46,7 @@ export function TopConceptos({ data }: { data: ConceptoData[] }) {
               </div>
               <div className="w-full bg-slate-800 rounded-full h-1.5">
                 <div
-                  className="h-1.5 rounded-full bg-rose-400"
+                  className={`h-1.5 rounded-full ${barColorClass}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>

@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
   const tipo = searchParams.get("tipo") as Tipo | null;
   const categoria = searchParams.get("categoria");
   const miembroId = searchParams.get("miembroId");
+  const concepto = searchParams.get("concepto");
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
   const limit = Math.min(100, parseInt(searchParams.get("limit") ?? "50"));
   const orderByField = searchParams.get("orderBy") ?? "fecha";
@@ -49,6 +50,10 @@ export async function GET(req: NextRequest) {
     where.miembroId = null;
   } else if (miembroId) {
     where.miembroId = miembroId;
+  }
+
+  if (concepto) {
+    where.concepto = { contains: concepto, mode: "insensitive" };
   }
 
   const [total, movimientos] = await Promise.all([

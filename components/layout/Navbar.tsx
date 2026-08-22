@@ -11,6 +11,8 @@ interface NavbarProps {
 
 const links = [
   { href: "/", label: "Inicio", icon: "🏠" },
+  { href: "/ingresos", label: "Ingresos", icon: "💰" },
+  { href: "/egresos", label: "Egresos", icon: "💸" },
   { href: "/movimientos", label: "Movimientos", icon: "📋" },
   { href: "/familia", label: "Familia", icon: "👨‍👩‍👧" },
   { href: "/graficas", label: "Gráficas", icon: "📊" },
