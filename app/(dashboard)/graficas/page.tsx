@@ -39,6 +39,7 @@ export default function GraficasPage() {
   }, [mes, fetchResumen]);
 
   const egresosData = resumen?.porCategoria.filter((c) => c.tipo === "EGRESO") ?? [];
+  const ingresosData = resumen?.porCategoria.filter((c) => c.tipo === "INGRESO") ?? [];
 
   return (
     <div className="space-y-5">
@@ -63,8 +64,9 @@ export default function GraficasPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <GastoPorCategoria data={egresosData} />
-            <TopConceptos data={resumen.topConceptos} />
+            <GastoPorCategoria data={ingresosData} titulo="Ingresos por categoría" />
           </div>
+          <TopConceptos data={resumen.topConceptos} />
           <EvolucionMensual data={resumen.evolucion} />
           <BalanceScatter data={resumen.evolucion} />
         </>

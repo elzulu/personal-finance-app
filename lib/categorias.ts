@@ -1,7 +1,7 @@
 import { Tipo } from "./types";
 
 export const CATEGORIAS_POR_TIPO: Record<Tipo, string[]> = {
-  INGRESO: ["Sueldo", "Negocio", "Inversiones", "Arriendo", "Bonificaciones", "Otro"],
+  INGRESO: ["Sueldo", "Negocio", "Trabajo Extra", "Inversiones", "Arriendo", "Bonificaciones", "Otro"],
   EGRESO: [
     "Vivienda",
     "Servicios",

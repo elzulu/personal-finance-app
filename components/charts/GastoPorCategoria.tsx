@@ -11,12 +11,17 @@ interface CategoriaData {
   monto: number;
 }
 
-export function GastoPorCategoria({ data }: { data: CategoriaData[] }) {
+interface GastoPorCategoriaProps {
+  data: CategoriaData[];
+  titulo?: string;
+}
+
+export function GastoPorCategoria({ data, titulo = "Gastos por categoría" }: GastoPorCategoriaProps) {
   if (!data || data.length === 0) {
     return (
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-2">
-          Gastos por categoría
+          {titulo}
         </h2>
         <p className="text-sm text-slate-500 py-6 text-center">Sin datos este mes</p>
       </Card>
@@ -29,7 +34,7 @@ export function GastoPorCategoria({ data }: { data: CategoriaData[] }) {
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-sm font-semibold text-slate-200">
-          Gastos por categoría
+          {titulo}
         </h2>
         <div className="text-right">
           <span className="block text-[10px] uppercase tracking-wide text-slate-500">Total</span>

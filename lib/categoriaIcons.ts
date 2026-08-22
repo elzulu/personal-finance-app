@@ -2,6 +2,7 @@ export const CATEGORIA_ICONOS: Record<string, string> = {
   // Ingreso
   Sueldo: "💼",
   Negocio: "🏢",
+  "Trabajo Extra": "🛵",
   Inversiones: "📈",
   Arriendo: "🏠",
   Bonificaciones: "🎁",
