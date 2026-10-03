@@ -3,7 +3,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { aporteAhorroSchema, AporteAhorroInput } from "@/lib/validations";
-import { toInputDate } from "@/lib/formatters";
+import { todayInputDate } from "@/lib/formatters";
 
 interface Miembro {
   id: string;
@@ -16,7 +16,7 @@ interface AporteAhorroFormProps {
 }
 
 export function AporteAhorroForm({ onSubmit, miembros }: AporteAhorroFormProps) {
-  const today = toInputDate(new Date());
+  const today = todayInputDate();
 
   const {
     register,

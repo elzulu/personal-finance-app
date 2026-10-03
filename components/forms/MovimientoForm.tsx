@@ -5,7 +5,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { movimientoSchema, MovimientoInput } from "@/lib/validations";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
-import { toInputDate, formatCOP } from "@/lib/formatters";
+import { todayInputDate, formatCOP } from "@/lib/formatters";
 import { getTipoDeudaLabel } from "@/lib/tiposDeuda";
 
 interface Miembro {
@@ -40,7 +40,7 @@ export function MovimientoForm({
   miembros = [],
   deudas = [],
 }: MovimientoFormProps) {
-  const today = toInputDate(new Date());
+  const today = todayInputDate();
 
   const {
     register,
