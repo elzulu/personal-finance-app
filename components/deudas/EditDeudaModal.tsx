@@ -18,6 +18,7 @@ interface Deuda {
   monto: string;
   tasaMensual?: string | null;
   cargoFijo?: string | null;
+  diaPago?: number | null;
 }
 
 interface EditDeudaModalProps {
@@ -55,6 +56,7 @@ export function EditDeudaModal({ deuda, miembros, onClose, onSaved }: EditDeudaM
           monto: Number(deuda.monto),
           tasaMensual: deuda.tasaMensual != null ? Number(deuda.tasaMensual) : null,
           cargoFijo: deuda.cargoFijo != null ? Number(deuda.cargoFijo) : null,
+          diaPago: deuda.diaPago ?? null,
         }}
         onSubmit={handleSubmit}
         submitLabel="Guardar cambios"

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BarChart3, ChevronRight } from "lucide-react";
 import { ResumenCards } from "@/components/dashboard/ResumenCards";
 import { UltimosMovimientos, MovimientoReciente } from "@/components/dashboard/UltimosMovimientos";
+import { ProximosPagos } from "@/components/dashboard/ProximosPagos";
 import { NuevoMovimientoFab } from "@/components/movimientos/NuevoMovimientoFab";
 import { MovimientoInput } from "@/lib/validations";
 import { ResumenSkeleton } from "@/components/ui/Skeleton";
@@ -90,6 +91,8 @@ export default function DashboardPage() {
           <ResumenCards ingresos={resumen.ingresos} egresos={resumen.egresos} saldo={resumen.saldo} />
         </div>
       ) : null}
+
+      <ProximosPagos deudas={deudas} />
 
       {!error && <UltimosMovimientos data={recientes} />}
 

@@ -34,6 +34,7 @@ export async function PATCH(
         ...(data.monto !== undefined ? { monto: data.monto } : {}),
         ...(data.tasaMensual !== undefined ? { tasaMensual: data.tasaMensual } : {}),
         ...(data.cargoFijo !== undefined ? { cargoFijo: data.cargoFijo } : {}),
+        ...(data.diaPago !== undefined ? { diaPago: data.diaPago } : {}),
         ...(data.miembroId !== undefined ? { miembroId: data.miembroId } : {}),
       },
       include: { miembro: { select: { id: true, nombre: true } } },

@@ -11,6 +11,9 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { useFeedback } from "@/components/ui/Feedback";
 import { CreditCard } from "lucide-react";
+import { RecordatoriosCard } from "@/components/deudas/RecordatoriosCard";
+import { EstadoPagoBadge } from "@/components/deudas/EstadoPagoBadge";
+import { estadoDeDeuda } from "@/lib/estadoDeuda";
 import { formatCOP, formatDate } from "@/lib/formatters";
 import { getTipoDeudaIcono, getTipoDeudaLabel } from "@/lib/tiposDeuda";
 
@@ -29,7 +32,9 @@ interface Deuda {
   pagado: boolean;
   tasaMensual: string | null;
   cargoFijo: string | null;
+  diaPago: number | null;
   createdAt: string;
+  movimientos?: { fecha: string }[];
 }
 
 export default function DeudasPage() {
@@ -158,6 +163,8 @@ export default function DeudasPage() {
         </>
       )}
 
+      <RecordatoriosCard />
+
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-4">Registrar deuda</h2>
         <DeudaForm onSubmit={handleAdd} miembros={miembros} />
@@ -200,6 +207,12 @@ export default function DeudasPage() {
                         {d.tasaMensual != null && d.cargoFijo != null && " · "}
                         {d.cargoFijo != null && `Cargo ${formatCOP(Number(d.cargoFijo))}/mes`}
                       </p>
+                    )}
+                    {d.diaPago != null && !d.pagado && (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <span className="text-xs text-slate-400">Paga el día {d.diaPago}</span>
+                        <EstadoPagoBadge estado={estadoDeDeuda(d)} />
+                      </div>
                     )}
                   </div>
                 </div>

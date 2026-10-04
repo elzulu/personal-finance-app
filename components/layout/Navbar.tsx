@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Download, LogOut, Upload, X } from "lucide-react";
 import { useFeedback } from "@/components/ui/Feedback";
+import { useScrollLock } from "@/components/ui/useScrollLock";
 import { NAV_LINKS, isActive } from "./navLinks";
 
 interface NavbarProps {
@@ -19,6 +20,9 @@ export function Navbar({ user, menuOpen, onMenuOpenChange }: NavbarProps) {
   const { toast } = useFeedback();
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // El fondo no debe moverse mientras el menú está abierto
+  useScrollLock(menuOpen);
 
   // Cerrar el menú con Escape
   useEffect(() => {
@@ -125,10 +129,10 @@ export function Navbar({ user, menuOpen, onMenuOpenChange }: NavbarProps) {
     {/* Fuera del <header>: su backdrop-blur haría que `fixed` se calcule respecto a la cabecera */}
     {menuOpen && (
       <>
-        <div className="fixed inset-0 top-14 bg-black/50 z-30" onClick={() => onMenuOpenChange(false)} aria-hidden />
+        <div className="fixed inset-0 top-14 bg-black/50 z-30 touch-none" onClick={() => onMenuOpenChange(false)} aria-hidden />
         <div
           id="menu-mas"
-          className="fixed z-[45] inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:inset-x-auto md:right-4 md:top-14 md:w-64 bg-slate-900 border-t md:border border-slate-800 md:rounded-b-2xl rounded-t-2xl shadow-xl shadow-black/40 py-2 max-h-[70dvh] overflow-y-auto animate-sheet-up"
+          className="fixed z-[45] inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:inset-x-auto md:right-4 md:top-14 md:w-64 bg-slate-900 border-t md:border border-slate-800 md:rounded-b-2xl rounded-t-2xl shadow-xl shadow-black/40 py-2 max-h-[70dvh] overflow-y-auto overscroll-contain animate-sheet-up"
         >
           <div className="md:hidden flex items-center justify-between px-4 pb-1">
             <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Más opciones</span>

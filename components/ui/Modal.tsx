@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useScrollLock } from "./useScrollLock";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -22,11 +23,11 @@ export function Modal({ title, onClose, children, size = "md" }: ModalProps) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
+  useScrollLock(true);
+
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const panel = panelRef.current;
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     // Foco inicial: primer campo del formulario, o el primer elemento enfocable
     const first =
@@ -57,7 +58,6 @@ export function Modal({ title, onClose, children, size = "md" }: ModalProps) {
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = overflow;
       previous?.focus?.();
     };
   }, []);
@@ -73,7 +73,7 @@ export function Modal({ title, onClose, children, size = "md" }: ModalProps) {
         aria-labelledby={titleId}
         className={`relative bg-slate-900 border border-slate-800 shadow-xl shadow-black/40 w-full ${
           size === "sm" ? "sm:max-w-sm" : "sm:max-w-md"
-        } max-h-[92dvh] overflow-y-auto rounded-t-2xl sm:rounded-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] animate-sheet-up`}
+        } max-h-[92dvh] overflow-y-auto overscroll-contain rounded-t-2xl sm:rounded-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] animate-sheet-up`}
       >
         <div className="sticky -top-5 z-10 -mx-5 -mt-5 mb-4 px-5 pt-5 pb-2 bg-slate-900 flex justify-between items-center">
           <h2 id={titleId} className="text-base font-semibold text-white">

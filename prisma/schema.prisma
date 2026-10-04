@@ -8,14 +8,28 @@ datasource db {
 }
 
 model User {
-  id           String       @id @default(cuid())
-  email        String       @unique
-  passwordHash String
-  name         String?
-  createdAt    DateTime     @default(now())
-  movimientos  Movimiento[]
-  miembros     Miembro[]
-  deudas       Deuda[]
+  id                String             @id @default(cuid())
+  email             String             @unique
+  passwordHash      String
+  name              String?
+  createdAt         DateTime           @default(now())
+  movimientos       Movimiento[]
+  miembros          Miembro[]
+  deudas            Deuda[]
+  pushSubscriptions PushSubscription[]
+}
+
+// Dispositivo suscrito a recordatorios de pago (Web Push)
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Miembro {
@@ -55,6 +69,7 @@ model Deuda {
   // Condiciones opcionales para sugerir el desglose de cada pago
   tasaMensual Decimal?     @db.Decimal(5, 2) // interés mensual en %, p. ej. 2.5
   cargoFijo   Decimal?     @db.Decimal(12, 2) // cargo fijo mensual (seguro, cuota de manejo)
+  diaPago     Int? // día del mes (1-31) en que vence el pago; si el mes es más corto, el último día
   pagado      Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -65,23 +80,23 @@ model Deuda {
 }
 
 model Movimiento {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  miembroId  String?
-  miembro    Miembro? @relation(fields: [miembroId], references: [id])
-  deudaId    String?
-  deuda      Deuda?   @relation(fields: [deudaId], references: [id], onDelete: SetNull)
-  fecha      DateTime
-  tipo       Tipo
-  categoria  String
-  concepto   String
-  monto      Decimal  @db.Decimal(12, 2)
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  miembroId String?
+  miembro   Miembro? @relation(fields: [miembroId], references: [id])
+  deudaId   String?
+  deuda     Deuda?   @relation(fields: [deudaId], references: [id], onDelete: SetNull)
+  fecha     DateTime
+  tipo      Tipo
+  categoria String
+  concepto  String
+  monto     Decimal  @db.Decimal(12, 2)
   // Desglose de un pago vinculado a deuda: solo (monto - interes - cargos) baja el saldo
-  interes    Decimal? @db.Decimal(12, 2)
-  cargos     Decimal? @db.Decimal(12, 2)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  interes   Decimal? @db.Decimal(12, 2)
+  cargos    Decimal? @db.Decimal(12, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId, fecha])
   @@index([userId, tipo, categoria])

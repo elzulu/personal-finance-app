@@ -87,3 +87,21 @@ describe("deudaSchema — condiciones", () => {
     expect(deudaSchema.safeParse({ ...base, cargoFijo: -10 }).success).toBe(false);
   });
 });
+
+describe("deudaSchema — día de pago", () => {
+  const base = { tipo: "TARJETA_CREDITO", monto: 1000000 };
+
+  it("acepta días entre 1 y 31, null y ausente", () => {
+    expect(deudaSchema.safeParse({ ...base, diaPago: 1 }).success).toBe(true);
+    expect(deudaSchema.safeParse({ ...base, diaPago: 31 }).success).toBe(true);
+    expect(deudaSchema.safeParse({ ...base, diaPago: null }).success).toBe(true);
+    expect(deudaSchema.safeParse(base).success).toBe(true);
+  });
+
+  it("rechaza 0, 32, decimales y negativos", () => {
+    expect(deudaSchema.safeParse({ ...base, diaPago: 0 }).success).toBe(false);
+    expect(deudaSchema.safeParse({ ...base, diaPago: 32 }).success).toBe(false);
+    expect(deudaSchema.safeParse({ ...base, diaPago: 15.5 }).success).toBe(false);
+    expect(deudaSchema.safeParse({ ...base, diaPago: -3 }).success).toBe(false);
+  });
+});

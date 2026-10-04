@@ -39,6 +39,7 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
       monto: undefined,
       tasaMensual: null,
       cargoFijo: null,
+      diaPago: null,
       ...defaultValues,
     },
   });
@@ -52,7 +53,7 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
       return;
     }
     if (!defaultValues) {
-      reset({ miembroId: null, tipo: "TARJETA_CREDITO", descripcion: "", monto: undefined, tasaMensual: null, cargoFijo: null });
+      reset({ miembroId: null, tipo: "TARJETA_CREDITO", descripcion: "", monto: undefined, tasaMensual: null, cargoFijo: null, diaPago: null });
     }
   }
 
@@ -121,9 +122,30 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
         />
 
         <p className="col-span-2 text-xs text-slate-400 -mb-1">
-          Opcional: con estos datos, al registrar un pago se sugiere el interés y el cargo del mes, y solo el
-          abono a capital baja el saldo.
+          Opcional: con la tasa y el cargo, al registrar un pago se sugiere el interés del mes y solo el abono a
+          capital baja el saldo.
         </p>
+
+        <Controller
+          name="diaPago"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Día de pago del mes"
+              type="number"
+              inputMode="numeric"
+              step="1"
+              min="1"
+              max="31"
+              placeholder="Ej: 15"
+              hint="Cuando se cumple el mes de interés; te recordamos ese día."
+              wrapperClassName="col-span-2"
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(e.target.value === "" ? null : Number(e.target.value))}
+              error={errors.diaPago?.message}
+            />
+          )}
+        />
 
         <Controller
           name="tasaMensual"

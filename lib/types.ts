@@ -19,4 +19,8 @@ export interface DeudaOption {
   miembro: { nombre: string } | null;
   tasaMensual?: string | null;
   cargoFijo?: string | null;
+  diaPago?: number | null;
+  createdAt?: string;
+  // Solo el más reciente (lo incluye GET /api/deudas)
+  movimientos?: { fecha: string }[];
 }

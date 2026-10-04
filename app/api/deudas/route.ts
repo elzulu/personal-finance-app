@@ -15,7 +15,11 @@ export async function GET() {
   const deudas = await prisma.deuda.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
-    include: { miembro: { select: { id: true, nombre: true } } },
+    include: {
+      miembro: { select: { id: true, nombre: true } },
+      // Último pago registrado: sirve para saber si el vencimiento del mes ya se pagó
+      movimientos: { orderBy: { fecha: "desc" }, take: 1, select: { fecha: true } },
+    },
   });
 
   return NextResponse.json(deudas);
@@ -40,6 +44,7 @@ export async function POST(req: NextRequest) {
         monto: data.monto,
         tasaMensual: data.tasaMensual ?? null,
         cargoFijo: data.cargoFijo ?? null,
+        diaPago: data.diaPago ?? null,
       },
       include: { miembro: { select: { id: true, nombre: true } } },
     });

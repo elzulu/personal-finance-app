@@ -74,6 +74,13 @@ export const deudaSchema = z.object({
     .positive("El monto debe ser mayor a 0"),
   tasaMensual: z.number().min(0, "No puede ser negativa").max(100, "Máximo 100%").optional().nullable(),
   cargoFijo: z.number().min(0, "No puede ser negativo").optional().nullable(),
+  diaPago: z
+    .number({ invalid_type_error: "Ingresa un día válido" })
+    .int("Debe ser un número entero")
+    .min(1, "Entre 1 y 31")
+    .max(31, "Entre 1 y 31")
+    .optional()
+    .nullable(),
 });
 export type DeudaInput = z.infer<typeof deudaSchema>;
 
