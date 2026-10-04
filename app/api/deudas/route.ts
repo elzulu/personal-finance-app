@@ -38,6 +38,8 @@ export async function POST(req: NextRequest) {
         tipo: data.tipo as TipoDeuda,
         descripcion: data.descripcion ?? null,
         monto: data.monto,
+        tasaMensual: data.tasaMensual ?? null,
+        cargoFijo: data.cargoFijo ?? null,
       },
       include: { miembro: { select: { id: true, nombre: true } } },
     });

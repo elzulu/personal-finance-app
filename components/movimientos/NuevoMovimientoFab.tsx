@@ -6,20 +6,11 @@ import { MovimientoForm } from "@/components/forms/MovimientoForm";
 import { Modal } from "@/components/ui/Modal";
 import { useFeedback } from "@/components/ui/Feedback";
 import { MovimientoInput } from "@/lib/validations";
+import type { DeudaOption } from "@/lib/types";
 
 interface Miembro {
   id: string;
   nombre: string;
-}
-
-interface DeudaOption {
-  id: string;
-  tipo: string;
-  descripcion: string | null;
-  monto: string;
-  pagado: boolean;
-  miembroId: string | null;
-  miembro: { nombre: string } | null;
 }
 
 interface NuevoMovimientoFabProps {

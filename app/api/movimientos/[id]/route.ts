@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { movimientoUpdateSchema } from "@/lib/validations";
+import { abonoCapital } from "@/lib/deudas";
 import { ZodError } from "zod";
 
 export async function PATCH(
@@ -30,6 +31,17 @@ export async function PATCH(
     const newDeudaId = data.deudaId !== undefined ? (data.deudaId ?? null) : oldDeudaId;
     const oldMonto = Number(existing.monto);
     const newMonto = data.monto !== undefined ? data.monto : oldMonto;
+    const oldCapital = abonoCapital(oldMonto, existing.interes, existing.cargos);
+    // Desglose efectivo tras el cambio (si no viene, se conserva; sin deuda no aplica)
+    const newInteres = data.interes !== undefined ? data.interes : existing.interes;
+    const newCargos = data.cargos !== undefined ? data.cargos : existing.cargos;
+    const newCapital = abonoCapital(newMonto, newInteres, newCargos);
+    if (newDeudaId && newCapital < 0) {
+      return NextResponse.json(
+        { error: "El interés y los cargos no pueden superar el monto pagado" },
+        { status: 400 }
+      );
+    }
 
     const updateData = {
       ...(data.fecha ? { fecha: new Date(data.fecha) } : {}),
@@ -40,6 +52,8 @@ export async function PATCH(
       ...(data.miembroId !== undefined ? { miembroId: data.miembroId } : {}),
       // Siempre persistir el deudaId efectivo para mantener consistencia
       deudaId: newDeudaId,
+      interes: newDeudaId && newInteres != null ? Number(newInteres) : null,
+      cargos: newDeudaId && newCargos != null ? Number(newCargos) : null,
     };
 
     if (!oldDeudaId && !newDeudaId) {
@@ -60,7 +74,7 @@ export async function PATCH(
           where: { id: oldDeudaId, userId: session.user.id },
         });
         if (deudaAnterior) {
-          const montoRestaurado = Number(deudaAnterior.monto) + oldMonto;
+          const montoRestaurado = Number(deudaAnterior.monto) + oldCapital;
           await tx.deuda.update({
             where: { id: oldDeudaId },
             data: { monto: montoRestaurado, pagado: false },
@@ -75,7 +89,7 @@ export async function PATCH(
           where: { id: newDeudaId, userId: session.user.id },
         });
         if (!deudaNueva) throw new Error("Deuda no encontrada");
-        const nuevoMonto = Math.max(0, Number(deudaNueva.monto) - newMonto);
+        const nuevoMonto = Math.max(0, Number(deudaNueva.monto) - newCapital);
         await tx.deuda.update({
           where: { id: newDeudaId },
           data: { monto: nuevoMonto, pagado: nuevoMonto === 0 },
@@ -126,7 +140,8 @@ export async function DELETE(
         where: { id: existing.deudaId!, userId: session.user.id },
       });
       if (deuda) {
-        const montoRestaurado = Number(deuda.monto) + Number(existing.monto);
+        const montoRestaurado =
+          Number(deuda.monto) + abonoCapital(existing.monto, existing.interes, existing.cargos);
         await tx.deuda.update({
           where: { id: existing.deudaId! },
           data: { monto: montoRestaurado, pagado: false },

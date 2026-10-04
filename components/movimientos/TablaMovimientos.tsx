@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Inbox, Search, X } from "lucide-react";
 import { formatCOP, formatDate, toInputDate } from "@/lib/formatters";
+import { abonoCapital } from "@/lib/deudas";
 import { Button } from "@/components/ui/Button";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -12,20 +13,11 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { EditMovimientoModal } from "./EditMovimientoModal";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
 import { getCategoriaIcono } from "@/lib/categoriaIcons";
+import type { DeudaOption } from "@/lib/types";
 
 interface Miembro {
   id: string;
   nombre: string;
-}
-
-interface DeudaOption {
-  id: string;
-  tipo: string;
-  descripcion: string | null;
-  monto: string;
-  pagado: boolean;
-  miembroId: string | null;
-  miembro: { nombre: string } | null;
 }
 
 interface Movimiento {
@@ -37,6 +29,8 @@ interface Movimiento {
   monto: string;
   miembroId: string | null;
   deudaId: string | null;
+  interes?: string | null;
+  cargos?: string | null;
   miembro: Miembro | null;
 }
 
@@ -69,6 +63,17 @@ const SORT_OPTIONS = [
 ];
 
 const filterControl = `${controlClass} md:!w-auto`;
+
+// Resumen del desglose de un pago a deuda (solo si tiene interés o cargos)
+function desglose(m: Movimiento): string | null {
+  const interes = Number(m.interes ?? 0);
+  const cargos = Number(m.cargos ?? 0);
+  if (!m.deudaId || (interes <= 0 && cargos <= 0)) return null;
+  const partes = [`Capital ${formatCOP(abonoCapital(m.monto, interes, cargos))}`];
+  if (interes > 0) partes.push(`Interés ${formatCOP(interes)}`);
+  if (cargos > 0) partes.push(`Cargos ${formatCOP(cargos)}`);
+  return partes.join(" · ");
+}
 
 function Monto({ m }: { m: Movimiento }) {
   const esIngreso = m.tipo === "INGRESO";
@@ -229,6 +234,8 @@ export function TablaMovimientos({
               monto: Number(m.monto),
               miembroId: m.miembroId,
               deudaId: m.deudaId,
+              interes: m.interes != null ? Number(m.interes) : null,
+              cargos: m.cargos != null ? Number(m.cargos) : null,
             }),
           });
           if (res.ok) {
@@ -426,6 +433,7 @@ export function TablaMovimientos({
                     {m.categoria} · {formatDate(m.fecha)}
                     {m.miembro ? ` · ${m.miembro.nombre}` : ""}
                   </p>
+                  {desglose(m) && <p className="text-xs text-cyan-300/80 truncate">{desglose(m)}</p>}
                 </div>
                 <div className="text-sm text-right shrink-0">
                   <Monto m={m} />
@@ -473,8 +481,9 @@ export function TablaMovimientos({
                         {m.categoria}
                       </span>
                     </td>
-                    <td className="px-3 py-1.5 text-slate-100 max-w-[220px] truncate" title={m.concepto}>
-                      {m.concepto}
+                    <td className="px-3 py-1.5 text-slate-100 max-w-[260px]" title={m.concepto}>
+                      <span className="block truncate">{m.concepto}</span>
+                      {desglose(m) && <span className="block truncate text-xs text-cyan-300/80">{desglose(m)}</span>}
                     </td>
                     {miembros.length > 0 && (
                       <td className="px-3 py-1.5 text-slate-400 text-xs">

@@ -52,6 +52,9 @@ model Deuda {
   tipo        TipoDeuda
   descripcion String?
   monto       Decimal      @db.Decimal(12, 2)
+  // Condiciones opcionales para sugerir el desglose de cada pago
+  tasaMensual Decimal?     @db.Decimal(5, 2) // interés mensual en %, p. ej. 2.5
+  cargoFijo   Decimal?     @db.Decimal(12, 2) // cargo fijo mensual (seguro, cuota de manejo)
   pagado      Boolean      @default(false)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
@@ -74,6 +77,9 @@ model Movimiento {
   categoria  String
   concepto   String
   monto      Decimal  @db.Decimal(12, 2)
+  // Desglose de un pago vinculado a deuda: solo (monto - interes - cargos) baja el saldo
+  interes    Decimal? @db.Decimal(12, 2)
+  cargos     Decimal? @db.Decimal(12, 2)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

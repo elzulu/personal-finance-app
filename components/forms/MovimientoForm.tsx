@@ -7,24 +7,16 @@ import { movimientoSchema, MovimientoInput } from "@/lib/validations";
 import { CATEGORIAS_POR_TIPO } from "@/lib/categorias";
 import { getCategoriaIcono } from "@/lib/categoriaIcons";
 import { todayInputDate, formatCOP } from "@/lib/formatters";
+import { abonoCapital, interesSugerido } from "@/lib/deudas";
 import { getTipoDeudaLabel } from "@/lib/tiposDeuda";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, FieldShell } from "@/components/ui/Field";
 import { MontoInput } from "@/components/ui/MontoInput";
+import type { DeudaOption } from "@/lib/types";
 
 interface Miembro {
   id: string;
   nombre: string;
-}
-
-interface DeudaOption {
-  id: string;
-  tipo: string;
-  descripcion: string | null;
-  monto: string;
-  pagado: boolean;
-  miembroId: string | null;
-  miembro: { nombre: string } | null;
 }
 
 interface MovimientoFormProps {
@@ -70,6 +62,8 @@ export function MovimientoForm({
       monto: undefined,
       miembroId: null,
       deudaId: null,
+      interes: null,
+      cargos: null,
       ...defaultValues,
     },
   });
@@ -77,6 +71,10 @@ export function MovimientoForm({
   const tipo = watch("tipo");
   const categoria = watch("categoria");
   const miembroId = watch("miembroId");
+  const deudaId = watch("deudaId");
+  const monto = watch("monto");
+  const interes = watch("interes");
+  const cargos = watch("cargos");
   const categorias = CATEGORIAS_POR_TIPO[tipo] ?? [];
 
   // Al cambiar de tipo la categoría deja de ser válida
@@ -90,6 +88,8 @@ export function MovimientoForm({
   useEffect(() => {
     if (categoria !== "Deudas") {
       setValue("deudaId", null);
+      setValue("interes", null);
+      setValue("cargos", null);
     }
   }, [categoria, setValue]);
 
@@ -102,6 +102,18 @@ export function MovimientoForm({
 
   const mostrarSelectorDeuda =
     tipo === "EGRESO" && categoria === "Deudas" && deudasDisponibles.length > 0;
+
+  // Al elegir una deuda se sugiere el interés (saldo × tasa) y el cargo fijo; ambos son editables
+  function elegirDeuda(id: string | null) {
+    setValue("deudaId", id);
+    const d = id ? deudas.find((x) => x.id === id) : undefined;
+    const interesSug = d ? interesSugerido(d.monto, d.tasaMensual) : 0;
+    const cargoSug = d?.cargoFijo != null ? Number(d.cargoFijo) : 0;
+    setValue("interes", interesSug > 0 ? interesSug : null);
+    setValue("cargos", cargoSug > 0 ? cargoSug : null);
+  }
+
+  const capital = abonoCapital(monto, interes, cargos);
 
   async function handleFormSubmit(data: MovimientoInput) {
     setSubmitError(null);
@@ -120,6 +132,8 @@ export function MovimientoForm({
       monto: undefined,
       miembroId: null,
       deudaId: null,
+      interes: null,
+      cargos: null,
       ...(isEdit ? defaultValues : {}),
     });
     // El botón de envío se deshabilita mientras guarda y el navegador suelta el foco; se devuelve al monto
@@ -260,7 +274,7 @@ export function MovimientoForm({
                 wrapperClassName="col-span-2"
                 hint="Al vincular, el saldo de la deuda se actualizará automáticamente."
                 value={field.value ?? ""}
-                onChange={(e) => field.onChange(e.target.value === "" ? null : e.target.value)}
+                onChange={(e) => elegirDeuda(e.target.value === "" ? null : e.target.value)}
               >
                 <option value="">Sin vincular</option>
                 {deudasDisponibles.map((d) => (
@@ -274,6 +288,58 @@ export function MovimientoForm({
               </Select>
             )}
           />
+        )}
+
+        {/* Desglose del pago: solo el abono a capital baja el saldo de la deuda */}
+        {mostrarSelectorDeuda && deudaId && (
+          <fieldset className="col-span-2 rounded-xl border border-slate-800 bg-slate-950/40 p-3 space-y-3">
+            <legend className="px-1 text-xs font-medium text-slate-400">Desglose del pago (opcional)</legend>
+            <div className="grid grid-cols-2 gap-3">
+              <Controller
+                name="interes"
+                control={control}
+                render={({ field }) => (
+                  <MontoInput
+                    label="Interés"
+                    value={field.value}
+                    onChange={(v) => field.onChange(v ?? null)}
+                    onBlur={field.onBlur}
+                    error={errors.interes?.message}
+                    wrapperClassName="col-span-2 sm:col-span-1"
+                  />
+                )}
+              />
+              <Controller
+                name="cargos"
+                control={control}
+                render={({ field }) => (
+                  <MontoInput
+                    label="Cargos (seguro, manejo)"
+                    value={field.value}
+                    onChange={(v) => field.onChange(v ?? null)}
+                    onBlur={field.onBlur}
+                    error={errors.cargos?.message}
+                    wrapperClassName="col-span-2 sm:col-span-1"
+                  />
+                )}
+              />
+            </div>
+            <p
+              className={`text-sm flex items-center justify-between ${capital < 0 ? "text-rose-300" : "text-slate-300"}`}
+              aria-live="polite"
+            >
+              <span>Abono a capital</span>
+              <span className="font-semibold">{formatCOP(Math.max(0, capital))}</span>
+            </p>
+            {capital < 0 && (
+              <p role="alert" className="text-xs text-rose-300">
+                El interés y los cargos superan el monto pagado.
+              </p>
+            )}
+            <p className="text-xs text-slate-400">
+              Solo el abono a capital reduce el saldo de la deuda; el monto total cuenta como egreso del mes.
+            </p>
+          </fieldset>
         )}
 
         {/* Aviso cuando categoría = Deudas pero no hay deudas registradas */}

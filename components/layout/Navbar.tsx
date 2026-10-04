@@ -69,6 +69,7 @@ export function Navbar({ user, menuOpen, onMenuOpenChange }: NavbarProps) {
     "w-full min-h-12 flex items-center gap-3 px-4 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-400";
 
   return (
+    <>
     <header className="bg-slate-900/80 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md pt-[env(safe-area-inset-top)]">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         <Link href="/" className="font-bold text-white text-sm flex items-center gap-2 shrink-0 min-h-11 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400">
@@ -119,65 +120,68 @@ export function Navbar({ user, menuOpen, onMenuOpenChange }: NavbarProps) {
         </div>
       </div>
 
-      {menuOpen && (
-        <>
-          <div className="fixed inset-0 top-14 bg-black/50 z-30" onClick={() => onMenuOpenChange(false)} aria-hidden />
-          <div
-            id="menu-mas"
-            className="fixed md:absolute z-40 inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:inset-x-auto md:right-4 md:top-full md:w-64 bg-slate-900 border-t md:border border-slate-800 md:rounded-b-2xl rounded-t-2xl shadow-xl shadow-black/40 py-2 max-h-[70dvh] overflow-y-auto animate-sheet-up"
-          >
-            <div className="md:hidden flex items-center justify-between px-4 pb-1">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Más opciones</span>
-              <button
-                onClick={() => onMenuOpenChange(false)}
-                aria-label="Cerrar menú"
-                className="w-11 h-11 -mr-3 flex items-center justify-center text-slate-400 hover:text-white"
-              >
-                <X size={18} aria-hidden />
-              </button>
-            </div>
-
-            {/* En móvil se listan todas las secciones; en escritorio ya están en la barra */}
-            <div className="md:hidden">
-              {NAV_LINKS.map(({ href, label, icon: Icon }) => {
-                const active = isActive(pathname, href);
-                return (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => onMenuOpenChange(false)}
-                    aria-current={active ? "page" : undefined}
-                    className={`${menuItem} ${active ? "bg-cyan-400/10 !text-cyan-300" : ""}`}
-                  >
-                    <Icon size={18} aria-hidden />
-                    {label}
-                  </Link>
-                );
-              })}
-              <div className="my-2 border-t border-slate-800" />
-            </div>
-
-            <button onClick={handleExport} className={menuItem}>
-              <Download size={18} aria-hidden /> Exportar CSV
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={importing}
-              className={`${menuItem} disabled:opacity-50`}
-            >
-              <Upload size={18} aria-hidden /> {importing ? "Importando..." : "Importar CSV"}
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={handleFileChange}
-              aria-label="Archivo CSV a importar"
-            />
-          </div>
-        </>
-      )}
     </header>
+
+    {/* Fuera del <header>: su backdrop-blur haría que `fixed` se calcule respecto a la cabecera */}
+    {menuOpen && (
+      <>
+        <div className="fixed inset-0 top-14 bg-black/50 z-30" onClick={() => onMenuOpenChange(false)} aria-hidden />
+        <div
+          id="menu-mas"
+          className="fixed z-[45] inset-x-0 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] md:bottom-auto md:inset-x-auto md:right-4 md:top-14 md:w-64 bg-slate-900 border-t md:border border-slate-800 md:rounded-b-2xl rounded-t-2xl shadow-xl shadow-black/40 py-2 max-h-[70dvh] overflow-y-auto animate-sheet-up"
+        >
+          <div className="md:hidden flex items-center justify-between px-4 pb-1">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">Más opciones</span>
+            <button
+              onClick={() => onMenuOpenChange(false)}
+              aria-label="Cerrar menú"
+              className="w-11 h-11 -mr-3 flex items-center justify-center text-slate-400 hover:text-white"
+            >
+              <X size={18} aria-hidden />
+            </button>
+          </div>
+
+          {/* En móvil se listan todas las secciones; en escritorio ya están en la barra */}
+          <div className="md:hidden">
+            {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+              const active = isActive(pathname, href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={() => onMenuOpenChange(false)}
+                  aria-current={active ? "page" : undefined}
+                  className={`${menuItem} ${active ? "bg-cyan-400/10 !text-cyan-300" : ""}`}
+                >
+                  <Icon size={18} aria-hidden />
+                  {label}
+                </Link>
+              );
+            })}
+            <div className="my-2 border-t border-slate-800" />
+          </div>
+
+          <button onClick={handleExport} className={menuItem}>
+            <Download size={18} aria-hidden /> Exportar CSV
+          </button>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={importing}
+            className={`${menuItem} disabled:opacity-50`}
+          >
+            <Upload size={18} aria-hidden /> {importing ? "Importando..." : "Importar CSV"}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,text/csv"
+            className="hidden"
+            onChange={handleFileChange}
+            aria-label="Archivo CSV a importar"
+          />
+        </div>
+      </>
+    )}
+    </>
   );
 }

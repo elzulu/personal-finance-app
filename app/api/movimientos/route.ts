@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { movimientoSchema } from "@/lib/validations";
+import { abonoCapital } from "@/lib/deudas";
 import { Prisma, Tipo } from "@prisma/client";
 import { ZodError } from "zod";
 
@@ -92,6 +93,9 @@ export async function POST(req: NextRequest) {
       monto: data.monto,
       miembroId: data.miembroId ?? null,
       deudaId: data.deudaId ?? null,
+      // El desglose solo aplica a pagos vinculados a una deuda
+      interes: data.deudaId ? data.interes ?? null : null,
+      cargos: data.deudaId ? data.cargos ?? null : null,
     };
 
     if (data.deudaId) {
@@ -102,7 +106,11 @@ export async function POST(req: NextRequest) {
         });
         if (!deuda) throw new Error("Deuda no encontrada");
 
-        const nuevoMonto = Math.max(0, Number(deuda.monto) - data.monto);
+        // Solo el abono a capital baja el saldo (el interés y los cargos no)
+        const nuevoMonto = Math.max(
+          0,
+          Number(deuda.monto) - abonoCapital(data.monto, data.interes, data.cargos)
+        );
         await tx.deuda.update({
           where: { id: data.deudaId! },
           data: { monto: nuevoMonto, pagado: nuevoMonto === 0 },

@@ -5,20 +5,11 @@ import { Modal } from "@/components/ui/Modal";
 import { useFeedback } from "@/components/ui/Feedback";
 import { MovimientoInput } from "@/lib/validations";
 import { toInputDate } from "@/lib/formatters";
+import type { DeudaOption } from "@/lib/types";
 
 interface Miembro {
   id: string;
   nombre: string;
-}
-
-interface DeudaOption {
-  id: string;
-  tipo: string;
-  descripcion: string | null;
-  monto: string;
-  pagado: boolean;
-  miembroId: string | null;
-  miembro: { nombre: string } | null;
 }
 
 interface Movimiento {
@@ -30,6 +21,8 @@ interface Movimiento {
   monto: string;
   miembroId: string | null;
   deudaId: string | null;
+  interes?: string | null;
+  cargos?: string | null;
 }
 
 interface EditModalProps {
@@ -70,6 +63,8 @@ export function EditMovimientoModal({ movimiento, miembros, deudas = [], onClose
           monto: Number(movimiento.monto),
           miembroId: movimiento.miembroId,
           deudaId: movimiento.deudaId,
+          interes: movimiento.interes != null ? Number(movimiento.interes) : null,
+          cargos: movimiento.cargos != null ? Number(movimiento.cargos) : null,
         }}
         onSubmit={handleSubmit}
         submitLabel="Guardar cambios"

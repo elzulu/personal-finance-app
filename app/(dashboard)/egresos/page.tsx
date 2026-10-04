@@ -13,20 +13,11 @@ import { NuevoMovimientoFab } from "@/components/movimientos/NuevoMovimientoFab"
 import { TrendingDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { formatCOP, getCurrentMesKey } from "@/lib/formatters";
+import type { DeudaOption } from "@/lib/types";
 
 interface Miembro {
   id: string;
   nombre: string;
-}
-
-interface DeudaOption {
-  id: string;
-  tipo: string;
-  descripcion: string | null;
-  monto: string;
-  pagado: boolean;
-  miembroId: string | null;
-  miembro: { nombre: string } | null;
 }
 
 interface ResumenTipo {

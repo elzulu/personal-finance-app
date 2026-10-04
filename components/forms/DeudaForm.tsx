@@ -37,6 +37,8 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
       tipo: "TARJETA_CREDITO",
       descripcion: "",
       monto: undefined,
+      tasaMensual: null,
+      cargoFijo: null,
       ...defaultValues,
     },
   });
@@ -50,7 +52,7 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
       return;
     }
     if (!defaultValues) {
-      reset({ miembroId: null, tipo: "TARJETA_CREDITO", descripcion: "", monto: undefined });
+      reset({ miembroId: null, tipo: "TARJETA_CREDITO", descripcion: "", monto: undefined, tasaMensual: null, cargoFijo: null });
     }
   }
 
@@ -116,6 +118,46 @@ export function DeudaForm({ defaultValues, onSubmit, submitLabel = "Registrar de
           placeholder="Ej: Compra de electrodoméstico"
           autoComplete="off"
           wrapperClassName="col-span-2 sm:col-span-1"
+        />
+
+        <p className="col-span-2 text-xs text-slate-400 -mb-1">
+          Opcional: con estos datos, al registrar un pago se sugiere el interés y el cargo del mes, y solo el
+          abono a capital baja el saldo.
+        </p>
+
+        <Controller
+          name="tasaMensual"
+          control={control}
+          render={({ field }) => (
+            <Input
+              label="Interés mensual (%)"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min="0"
+              max="100"
+              placeholder="Ej: 2.5"
+              wrapperClassName="col-span-2 sm:col-span-1"
+              value={field.value ?? ""}
+              onChange={(e) => field.onChange(e.target.value === "" ? null : Number(e.target.value))}
+              error={errors.tasaMensual?.message}
+            />
+          )}
+        />
+
+        <Controller
+          name="cargoFijo"
+          control={control}
+          render={({ field }) => (
+            <MontoInput
+              label="Cargo fijo mensual (seguro, manejo)"
+              value={field.value}
+              onChange={(v) => field.onChange(v ?? null)}
+              onBlur={field.onBlur}
+              error={errors.cargoFijo?.message}
+              wrapperClassName="col-span-2 sm:col-span-1"
+            />
+          )}
         />
       </div>
 

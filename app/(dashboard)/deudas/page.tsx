@@ -27,6 +27,8 @@ interface Deuda {
   descripcion: string | null;
   monto: string;
   pagado: boolean;
+  tasaMensual: string | null;
+  cargoFijo: string | null;
   createdAt: string;
 }
 
@@ -192,6 +194,13 @@ export default function DeudasPage() {
                     <p className="text-xs text-slate-400 truncate">
                       {d.descripcion || formatDate(d.createdAt)}
                     </p>
+                    {(d.tasaMensual != null || d.cargoFijo != null) && (
+                      <p className="text-xs text-slate-400 truncate">
+                        {d.tasaMensual != null && `${Number(d.tasaMensual).toLocaleString("es-CO")}% mensual`}
+                        {d.tasaMensual != null && d.cargoFijo != null && " · "}
+                        {d.cargoFijo != null && `Cargo ${formatCOP(Number(d.cargoFijo))}/mes`}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">

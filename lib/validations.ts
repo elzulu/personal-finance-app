@@ -18,18 +18,26 @@ export const movimientoBaseSchema = z.object({
     .positive("El monto debe ser mayor a 0"),
   miembroId: z.string().optional().nullable(),
   deudaId: z.string().optional().nullable(),
+  // Desglose del pago a una deuda (opcional): solo el resto baja el saldo
+  interes: z.number().min(0, "No puede ser negativo").optional().nullable(),
+  cargos: z.number().min(0, "No puede ser negativo").optional().nullable(),
 });
 
-export const movimientoSchema = movimientoBaseSchema.refine(
-  (data) =>
-    CATEGORIAS_POR_TIPO[data.tipo as "INGRESO" | "EGRESO"]?.includes(
-      data.categoria
-    ),
-  {
-    message: "La categoría no es válida para el tipo seleccionado",
-    path: ["categoria"],
-  }
-);
+export const movimientoSchema = movimientoBaseSchema
+  .refine(
+    (data) =>
+      CATEGORIAS_POR_TIPO[data.tipo as "INGRESO" | "EGRESO"]?.includes(
+        data.categoria
+      ),
+    {
+      message: "La categoría no es válida para el tipo seleccionado",
+      path: ["categoria"],
+    }
+  )
+  .refine((data) => (data.interes ?? 0) + (data.cargos ?? 0) <= data.monto, {
+    message: "El interés y los cargos no pueden superar el monto pagado",
+    path: ["interes"],
+  });
 
 export type MovimientoInput = z.infer<typeof movimientoSchema>;
 
@@ -64,6 +72,8 @@ export const deudaSchema = z.object({
       invalid_type_error: "Ingresa un número válido",
     })
     .positive("El monto debe ser mayor a 0"),
+  tasaMensual: z.number().min(0, "No puede ser negativa").max(100, "Máximo 100%").optional().nullable(),
+  cargoFijo: z.number().min(0, "No puede ser negativo").optional().nullable(),
 });
 export type DeudaInput = z.infer<typeof deudaSchema>;
 

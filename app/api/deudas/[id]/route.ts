@@ -32,6 +32,8 @@ export async function PATCH(
         ...(data.tipo ? { tipo: data.tipo as TipoDeuda } : {}),
         ...(data.descripcion !== undefined ? { descripcion: data.descripcion } : {}),
         ...(data.monto !== undefined ? { monto: data.monto } : {}),
+        ...(data.tasaMensual !== undefined ? { tasaMensual: data.tasaMensual } : {}),
+        ...(data.cargoFijo !== undefined ? { cargoFijo: data.cargoFijo } : {}),
         ...(data.miembroId !== undefined ? { miembroId: data.miembroId } : {}),
       },
       include: { miembro: { select: { id: true, nombre: true } } },
