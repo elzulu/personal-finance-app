@@ -5,7 +5,12 @@ import { DeudaForm } from "@/components/forms/DeudaForm";
 import { EditDeudaModal } from "@/components/deudas/EditDeudaModal";
 import { DeudaInput } from "@/lib/validations";
 import { Card } from "@/components/ui/Card";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ListSkeleton, Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { RowMenu } from "@/components/ui/RowMenu";
+import { useFeedback } from "@/components/ui/Feedback";
+import { CreditCard } from "lucide-react";
 import { formatCOP, formatDate } from "@/lib/formatters";
 import { getTipoDeudaIcono, getTipoDeudaLabel } from "@/lib/tiposDeuda";
 
@@ -28,17 +33,22 @@ interface Deuda {
 export default function DeudasPage() {
   const [deudas, setDeudas] = useState<Deuda[]>([]);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
+  const { toast, confirm } = useFeedback();
   const [loading, setLoading] = useState(true);
-  const [formSuccess, setFormSuccess] = useState(false);
+  const [error, setError] = useState(false);
   const [editTarget, setEditTarget] = useState<Deuda | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
 
   const fetchDeudas = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await fetch("/api/deudas");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setDeudas(data);
+      setDeudas(Array.isArray(data) ? data : []);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -48,7 +58,7 @@ export default function DeudasPage() {
     fetchDeudas();
     fetch("/api/miembros")
       .then((r) => r.json())
-      .then(setMiembros)
+      .then((d) => setMiembros(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, [fetchDeudas]);
 
@@ -62,15 +72,31 @@ export default function DeudasPage() {
       const err = await res.json();
       throw new Error(err.error ?? "Error al guardar");
     }
-    setFormSuccess(true);
-    setTimeout(() => setFormSuccess(false), 2500);
+    toast("Deuda registrada");
     fetchDeudas();
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar esta deuda?")) return;
-    setDeleting(id);
-    await fetch(`/api/deudas/${id}`, { method: "DELETE" });
+  async function handleDelete(d: Deuda) {
+    const ok = await confirm({
+      title: "¿Eliminar esta deuda?",
+      message: (
+        <>
+          <span className="font-medium text-white">{getTipoDeudaLabel(d.tipo)}</span> · {formatCOP(Number(d.monto))}
+          <p className="mt-2 text-slate-400">Los pagos ya registrados quedarán sin deuda vinculada.</p>
+        </>
+      ),
+      confirmLabel: "Eliminar",
+      danger: true,
+    });
+    if (!ok) return;
+    setDeleting(d.id);
+    try {
+      const res = await fetch(`/api/deudas/${d.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast("Deuda eliminada");
+    } catch {
+      toast("No se pudo eliminar la deuda", { kind: "error" });
+    }
     setDeleting(null);
     fetchDeudas();
   }
@@ -92,21 +118,19 @@ export default function DeudasPage() {
 
   return (
     <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-white">Deudas</h1>
-        <p className="text-sm text-slate-400 mt-0.5">
-          Registra cuánto debe cada integrante y a qué tipo de deuda corresponde.
-        </p>
-      </div>
+      <PageHeader
+        title="Deudas"
+        subtitle="Registra cuánto debe cada integrante y a qué tipo de deuda corresponde."
+      />
 
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <LoadingSpinner size="lg" />
-        </div>
+      {loading && deudas.length === 0 ? (
+        <Skeleton className="h-28 rounded-2xl" />
+      ) : error ? (
+        <ErrorState message="No se pudieron cargar las deudas." onRetry={fetchDeudas} />
       ) : (
         <>
           <Card className="p-5 bg-gradient-to-br from-rose-500/15 via-slate-900/70 to-slate-900/70 border-rose-400/20">
-            <p className="text-xs font-medium text-rose-300/80 uppercase tracking-wide">
+            <p className="text-xs font-medium text-rose-300/90 uppercase tracking-wide">
               Deuda total
             </p>
             <p className="text-3xl font-bold text-white mt-1">{formatCOP(total)}</p>
@@ -116,8 +140,8 @@ export default function DeudasPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {porMiembro.map((p) => (
                 <Card key={p.id} className="p-4">
-                  <div className="w-9 h-9 rounded-xl bg-rose-400/10 text-rose-400 flex items-center justify-center text-base mb-2">
-                    💳
+                  <div className="w-9 h-9 rounded-xl bg-rose-400/10 text-rose-400 flex items-center justify-center mb-2" aria-hidden>
+                    <CreditCard size={18} />
                   </div>
                   <p className="text-xs font-medium text-slate-400 uppercase tracking-wide truncate">
                     {p.nombre}
@@ -134,22 +158,19 @@ export default function DeudasPage() {
 
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-4">Registrar deuda</h2>
-        {formSuccess && (
-          <div className="mb-3 p-2.5 bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 rounded-lg text-sm">
-            Deuda registrada correctamente
-          </div>
-        )}
         <DeudaForm onSubmit={handleAdd} miembros={miembros} />
       </Card>
 
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-4">Detalle de deudas</h2>
-        {loading ? (
-          <div className="flex justify-center py-6">
-            <LoadingSpinner />
-          </div>
+        {loading && deudas.length === 0 ? (
+          <ListSkeleton rows={3} />
         ) : deudas.length === 0 ? (
-          <p className="text-sm text-slate-500 py-4 text-center">Aún no has registrado deudas</p>
+          <EmptyState
+            icon={<CreditCard size={22} />}
+            title="Aún no has registrado deudas"
+            description="Registra una arriba para llevar el saldo y vincular tus pagos."
+          />
         ) : (
           <ul className="divide-y divide-slate-800/70">
             {deudas.map((d) => (
@@ -161,14 +182,14 @@ export default function DeudasPage() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-slate-200 truncate flex items-center gap-2">
                       {getTipoDeudaLabel(d.tipo)}
-                      {d.miembro && <span className="text-slate-500"> · {d.miembro.nombre}</span>}
+                      {d.miembro && <span className="text-slate-400"> · {d.miembro.nombre}</span>}
                       {d.pagado && (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-400/15 text-emerald-400 uppercase tracking-wide">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-xs font-semibold bg-emerald-400/15 text-emerald-400 uppercase tracking-wide">
                           Pagada
                         </span>
                       )}
                     </p>
-                    <p className="text-xs text-slate-500 truncate">
+                    <p className="text-xs text-slate-400 truncate">
                       {d.descripcion || formatDate(d.createdAt)}
                     </p>
                   </div>
@@ -177,19 +198,12 @@ export default function DeudasPage() {
                   <span className={`text-sm font-semibold whitespace-nowrap ${d.pagado ? "text-emerald-400" : "text-rose-400"}`}>
                     {formatCOP(Number(d.monto))}
                   </span>
-                  <button
-                    onClick={() => setEditTarget(d)}
-                    className="text-xs text-cyan-400 hover:text-cyan-300 font-medium"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(d.id)}
-                    disabled={deleting === d.id}
-                    className="text-xs text-rose-400 hover:text-rose-300 font-medium disabled:opacity-50"
-                  >
-                    {deleting === d.id ? "..." : "Eliminar"}
-                  </button>
+                  <RowMenu
+                    label={getTipoDeudaLabel(d.tipo)}
+                    busy={deleting === d.id}
+                    onEdit={() => setEditTarget(d)}
+                    onDelete={() => handleDelete(d)}
+                  />
                 </div>
               </li>
             ))}

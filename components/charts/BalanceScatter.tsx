@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { formatCOP } from "@/lib/formatters";
 import { Card } from "@/components/ui/Card";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 
 interface MesData {
   mes: string;
@@ -29,16 +30,25 @@ function BalanceDot(props: { cx?: number; cy?: number; payload?: { saldo: number
   const { cx, cy, payload } = props;
   if (cx === undefined || cy === undefined || !payload) return null;
   const positive = payload.saldo >= 0;
+  const color = positive ? "#34d399" : "#fb7185";
+  // Forma distinta además del color: círculo = positivo, rombo = negativo
+  if (!positive) {
+    return (
+      <rect
+        x={cx - 5}
+        y={cy - 5}
+        width={10}
+        height={10}
+        transform={`rotate(45 ${cx} ${cy})`}
+        fill={color}
+        stroke={color}
+        strokeOpacity={0.3}
+        strokeWidth={6}
+      />
+    );
+  }
   return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={6}
-      fill={positive ? "#34d399" : "#fb7185"}
-      stroke={positive ? "#34d399" : "#fb7185"}
-      strokeOpacity={0.3}
-      strokeWidth={6}
-    />
+    <circle cx={cx} cy={cy} r={6} fill={color} stroke={color} strokeOpacity={0.3} strokeWidth={6} />
   );
 }
 
@@ -47,7 +57,7 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
     return (
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-2">Balance por mes</h2>
-        <p className="text-sm text-slate-500 py-6 text-center">Sin datos disponibles</p>
+        <p className="text-sm text-slate-400 py-6 text-center">Sin datos disponibles</p>
       </Card>
     );
   }
@@ -60,7 +70,12 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
   return (
     <Card className="p-4">
       <h2 className="text-sm font-semibold text-slate-200 mb-1">Balance por mes</h2>
-      <p className="text-xs text-slate-500 mb-4">Ingresos − Egresos de cada mes</p>
+      <p className="text-xs text-slate-400 mb-4">Ingresos − Egresos de cada mes</p>
+      <ChartFrame
+        label="Balance por mes: ingresos menos egresos"
+        columns={["Mes", "Balance"]}
+        rows={points.map((pt) => [pt.label, formatCOP(pt.saldo)])}
+      >
       <ResponsiveContainer width="100%" height={240}>
         <ComposedChart data={points} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -105,12 +120,13 @@ export function BalanceScatter({ data }: { data: MesData[] }) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </ChartFrame>
       <div className="flex items-center gap-4 mt-2 text-xs text-slate-400">
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" /> Positivo
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" aria-hidden /> Positivo (círculo)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-rose-400" /> Negativo
+          <span className="w-2.5 h-2.5 rotate-45 bg-rose-400" aria-hidden /> Negativo (rombo)
         </span>
       </div>
     </Card>

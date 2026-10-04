@@ -1,6 +1,8 @@
 "use client";
 
 import { DeudaForm } from "@/components/forms/DeudaForm";
+import { Modal } from "@/components/ui/Modal";
+import { useFeedback } from "@/components/ui/Feedback";
 import { DeudaInput } from "@/lib/validations";
 
 interface Miembro {
@@ -24,39 +26,36 @@ interface EditDeudaModalProps {
 }
 
 export function EditDeudaModal({ deuda, miembros, onClose, onSaved }: EditDeudaModalProps) {
+  const { toast } = useFeedback();
+
   async function handleSubmit(data: DeudaInput) {
     const res = await fetch(`/api/deudas/${deuda.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Error al guardar");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error ?? "Error al guardar");
+    }
+    toast("Cambios guardados");
     onSaved();
     onClose();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-slate-900 border border-slate-800 rounded-2xl shadow-xl shadow-black/40 w-full max-w-md p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-base font-semibold text-white">Editar deuda</h2>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 text-xl leading-none">
-            &times;
-          </button>
-        </div>
-        <DeudaForm
-          defaultValues={{
-            miembroId: deuda.miembroId,
-            tipo: deuda.tipo as DeudaInput["tipo"],
-            descripcion: deuda.descripcion ?? "",
-            monto: Number(deuda.monto),
-          }}
-          onSubmit={handleSubmit}
-          submitLabel="Guardar cambios"
-          miembros={miembros}
-        />
-      </div>
-    </div>
+    <Modal title="Editar deuda" onClose={onClose}>
+      <DeudaForm
+        defaultValues={{
+          miembroId: deuda.miembroId,
+          tipo: deuda.tipo as DeudaInput["tipo"],
+          descripcion: deuda.descripcion ?? "",
+          monto: Number(deuda.monto),
+        }}
+        onSubmit={handleSubmit}
+        submitLabel="Guardar cambios"
+        miembros={miembros}
+      />
+    </Modal>
   );
 }

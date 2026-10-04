@@ -45,6 +45,9 @@ set -a && source .env.local && set +a && npx prisma db push
 | `lib/formatters.ts` | `formatCOP`, `formatDate`, `toInputDate` |
 | `lib/auth.ts` | NextAuth authOptions |
 | `middleware.ts` | Protege todas las rutas excepto `/login`, `/api/auth`, `/api/register` |
+| `components/ui/` | Sistema de UI: `Button`, `Input`/`Select` (`Field`), `MontoInput`, `Modal`, `RowMenu`, `MonthPicker`, `PageHeader`, `Skeleton`, `EmptyState`, `Feedback` (toasts + `confirm` propios vía `useFeedback()`). Usar estos en vez de clases repetidas o `confirm()`/`alert()` nativos |
+| `components/layout/` | `AppShell` (cabecera + barra inferior móvil `BottomNav` + menú "Más"); enlaces en `navLinks.ts` |
+| `components/movimientos/NuevoMovimientoFab.tsx` | Botón flotante "+" con hoja de registro rápido (Dashboard, Movimientos, Ingresos, Egresos) |
 | `next.config.mjs` | Config Next.js (`.mjs`, NO `.ts`) |
 | `vitest.config.ts` | Config Vitest — environment: node, alias `@/` → raíz |
 
@@ -125,6 +128,9 @@ Cuando un `Movimiento` con `categoria="Deudas"` tiene un `deudaId`:
 - Recharts v3: el `value` del Tooltip formatter es `ValueType | undefined` — castear con `typeof value === "number"`
 - `prisma/seed.ts` usa categoría "Gastos" (legacy) que ya no es válida — no correr el seed en producción
 - En Windows, matar el puerto 3000 requiere PowerShell: `Stop-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess`
+- `Modal` usa portal a `document.body`: las `Card` tienen `backdrop-blur`, que vuelve a `position: fixed` relativo a la tarjeta
+- Iconos: `lucide-react` (no emojis en la UI nueva; `categoriaIcons.ts` mantiene emojis por categoría)
+- Pruebas en navegador headless: el service worker (`public/sw.js`) salta la interceptación de requests; usar `page.setBypassServiceWorker(true)`
 - Mezclar `next build` y `next dev` corrompe `.next/` — borrar la carpeta si hay errores raros de caché
 
 ---

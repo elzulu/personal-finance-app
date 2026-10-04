@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
 
 const loginSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -80,14 +82,14 @@ export default function LoginPage() {
     setLoading(false);
   }
 
-  const inputClass =
-    "w-full px-3 py-2.5 border border-slate-700 bg-slate-950/60 text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent";
-  const labelClass = "block text-sm font-medium text-slate-300 mb-1";
-  const errorClass = "text-rose-400 text-xs mt-1";
+  const tab = (active: boolean) =>
+    `flex-1 min-h-11 text-sm font-medium rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 ${
+      active ? "bg-slate-800 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"
+    }`;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+      <main className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="mx-auto mb-3 w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-emerald-400 flex items-center justify-center text-slate-950 text-xl font-bold shadow-lg shadow-cyan-500/20">
             $
@@ -97,131 +99,94 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-slate-900/70 rounded-2xl shadow-lg shadow-black/20 border border-slate-800 backdrop-blur-sm p-6">
-          {/* Tabs */}
-          <div className="flex rounded-lg bg-slate-950/60 p-1 mb-6">
+          {/* Pestañas */}
+          <div role="tablist" aria-label="Acceso" className="flex rounded-lg bg-slate-950/60 p-1 mb-6">
             <button
               type="button"
-              onClick={() => { setMode("login"); setError(null); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === "login"
-                  ? "bg-slate-800 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
+              role="tab"
+              aria-selected={mode === "login"}
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={tab(mode === "login")}
             >
               Ingresar
             </button>
             <button
               type="button"
-              onClick={() => { setMode("register"); setError(null); }}
-              className={`flex-1 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === "register"
-                  ? "bg-slate-800 text-white shadow-sm"
-                  : "text-slate-500 hover:text-slate-300"
-              }`}
+              role="tab"
+              aria-selected={mode === "register"}
+              onClick={() => {
+                setMode("register");
+                setError(null);
+              }}
+              className={tab(mode === "register")}
             >
               Registrarse
             </button>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-rose-400/10 border border-rose-400/20 text-rose-400 rounded-lg text-sm">
+            <div role="alert" className="mb-4 p-3 bg-rose-400/10 border border-rose-400/20 text-rose-300 rounded-lg text-sm">
               {error}
             </div>
           )}
 
           {mode === "login" ? (
-            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-              <div>
-                <label className={labelClass}>Email</label>
-                <input
-                  {...loginForm.register("email")}
-                  type="email"
-                  autoComplete="email"
-                  className={inputClass}
-                  placeholder="tu@email.com"
-                />
-                {loginForm.formState.errors.email && (
-                  <p className={errorClass}>
-                    {loginForm.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className={labelClass}>Contraseña</label>
-                <input
-                  {...loginForm.register("password")}
-                  type="password"
-                  autoComplete="current-password"
-                  className={inputClass}
-                  placeholder="••••••••"
-                />
-                {loginForm.formState.errors.password && (
-                  <p className={errorClass}>
-                    {loginForm.formState.errors.password.message}
-                  </p>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all"
-              >
+            <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4" noValidate>
+              <Input
+                label="Email"
+                {...loginForm.register("email")}
+                type="email"
+                autoComplete="email"
+                placeholder="tu@email.com"
+                error={loginForm.formState.errors.email?.message}
+              />
+              <Input
+                label="Contraseña"
+                {...loginForm.register("password")}
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••••"
+                error={loginForm.formState.errors.password?.message}
+              />
+              <Button type="submit" size="lg" fullWidth loading={loading}>
                 {loading ? "Ingresando..." : "Ingresar"}
-              </button>
+              </Button>
             </form>
           ) : (
-            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4">
-              <div>
-                <label className={labelClass}>Nombre (opcional)</label>
-                <input
-                  {...registerForm.register("name")}
-                  type="text"
-                  autoComplete="name"
-                  className={inputClass}
-                  placeholder="Tu nombre"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Email</label>
-                <input
-                  {...registerForm.register("email")}
-                  type="email"
-                  autoComplete="email"
-                  className={inputClass}
-                  placeholder="tu@email.com"
-                />
-                {registerForm.formState.errors.email && (
-                  <p className={errorClass}>
-                    {registerForm.formState.errors.email.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className={labelClass}>Contraseña</label>
-                <input
-                  {...registerForm.register("password")}
-                  type="password"
-                  autoComplete="new-password"
-                  className={inputClass}
-                  placeholder="Mínimo 8 caracteres"
-                />
-                {registerForm.formState.errors.password && (
-                  <p className={errorClass}>
-                    {registerForm.formState.errors.password.message}
-                  </p>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all"
-              >
+            <form onSubmit={registerForm.handleSubmit(handleRegister)} className="space-y-4" noValidate>
+              <Input
+                label="Nombre (opcional)"
+                {...registerForm.register("name")}
+                type="text"
+                autoComplete="name"
+                placeholder="Tu nombre"
+              />
+              <Input
+                label="Email"
+                {...registerForm.register("email")}
+                type="email"
+                autoComplete="email"
+                placeholder="tu@email.com"
+                error={registerForm.formState.errors.email?.message}
+              />
+              <Input
+                label="Contraseña"
+                {...registerForm.register("password")}
+                type="password"
+                autoComplete="new-password"
+                placeholder="Mínimo 8 caracteres"
+                error={registerForm.formState.errors.password?.message}
+              />
+              <Button type="submit" size="lg" fullWidth loading={loading}>
                 {loading ? "Registrando..." : "Crear cuenta"}
-              </button>
+              </Button>
             </form>
           )}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

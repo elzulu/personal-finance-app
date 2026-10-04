@@ -5,9 +5,14 @@ import { TopConceptos } from "@/components/charts/TopConceptos";
 import { EvolucionSerie } from "@/components/charts/EvolucionSerie";
 import { GastoPorCategoria } from "@/components/charts/GastoPorCategoria";
 import { TablaMovimientos } from "@/components/movimientos/TablaMovimientos";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { StatsSkeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { MonthPicker } from "@/components/ui/MonthPicker";
+import { NuevoMovimientoFab } from "@/components/movimientos/NuevoMovimientoFab";
+import { TrendingDown } from "lucide-react";
 import { Card } from "@/components/ui/Card";
-import { formatCOP, getCurrentMesKey, getMesLabel } from "@/lib/formatters";
+import { formatCOP, getCurrentMesKey } from "@/lib/formatters";
 
 interface Miembro {
   id: string;
@@ -41,13 +46,19 @@ export default function EgresosPage() {
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [deudas, setDeudas] = useState<DeudaOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [tableKey, setTableKey] = useState(0);
 
   const fetchResumen = useCallback(async (mesKey: string) => {
     setLoading(true);
+    setError(false);
     try {
       const res = await fetch(`/api/resumen-tipo?tipo=EGRESO&mes=${mesKey}`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setResumen(data);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -58,31 +69,25 @@ export default function EgresosPage() {
   }, [mes, fetchResumen]);
 
   useEffect(() => {
-    fetch("/api/miembros").then((r) => r.json()).then(setMiembros).catch(() => {});
-    fetch("/api/deudas").then((r) => r.json()).then(setDeudas).catch(() => {});
+    fetch("/api/miembros").then((r) => r.json()).then((d) => setMiembros(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch("/api/deudas").then((r) => r.json()).then((d) => setDeudas(Array.isArray(d) ? d : [])).catch(() => {});
   }, []);
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-white flex items-center gap-2">
-            <span aria-hidden>💸</span> Egresos
-          </h1>
-          <p className="text-sm text-slate-400 capitalize mt-0.5">{getMesLabel(mes)}</p>
-        </div>
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="border border-slate-700 bg-slate-900 text-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 [color-scheme:dark]"
-        />
-      </div>
+      <PageHeader
+        title={
+          <>
+            <TrendingDown size={22} className="text-rose-400" aria-hidden /> Egresos
+          </>
+        }
+        actions={<MonthPicker value={mes} onChange={setMes} />}
+      />
 
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <LoadingSpinner size="lg" />
-        </div>
+      {loading && !resumen ? (
+        <StatsSkeleton />
+      ) : error ? (
+        <ErrorState message="No se pudo cargar el resumen." onRetry={() => fetchResumen(mes)} />
       ) : resumen ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -132,8 +137,29 @@ export default function EgresosPage() {
 
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-4">Transacciones</h2>
-        <TablaMovimientos key={mes} mes={mes} miembros={miembros} deudas={deudas} fixedTipo="EGRESO" />
+        <TablaMovimientos
+          key={`${mes}-${tableKey}`}
+          mes={mes}
+          miembros={miembros}
+          deudas={deudas}
+          fixedTipo="EGRESO"
+          onChanged={() => {
+            fetchResumen(mes);
+            fetch("/api/deudas").then((r) => r.json()).then((d) => setDeudas(Array.isArray(d) ? d : [])).catch(() => {});
+          }}
+        />
       </Card>
+
+      <NuevoMovimientoFab
+        miembros={miembros}
+        deudas={deudas}
+        defaultTipo="EGRESO"
+        onCreated={() => {
+          fetchResumen(mes);
+          setTableKey((k) => k + 1);
+          fetch("/api/deudas").then((r) => r.json()).then((d) => setDeudas(Array.isArray(d) ? d : [])).catch(() => {});
+        }}
+      />
     </div>
   );
 }

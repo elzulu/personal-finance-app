@@ -1,6 +1,8 @@
 "use client";
 
 import { MovimientoForm } from "@/components/forms/MovimientoForm";
+import { Modal } from "@/components/ui/Modal";
+import { useFeedback } from "@/components/ui/Feedback";
 import { MovimientoInput } from "@/lib/validations";
 import { toInputDate } from "@/lib/formatters";
 
@@ -39,51 +41,41 @@ interface EditModalProps {
 }
 
 export function EditMovimientoModal({ movimiento, miembros, deudas = [], onClose, onSaved }: EditModalProps) {
+  const { toast } = useFeedback();
+
   async function handleSubmit(data: MovimientoInput) {
     const res = await fetch(`/api/movimientos/${movimiento.id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error("Error al guardar");
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error ?? "Error al guardar");
+    }
+    toast("Cambios guardados");
     onSaved();
     onClose();
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
+    <Modal title="Editar movimiento" onClose={onClose}>
+      <MovimientoForm
+        isEdit
+        defaultValues={{
+          fecha: toInputDate(movimiento.fecha),
+          tipo: movimiento.tipo,
+          categoria: movimiento.categoria,
+          concepto: movimiento.concepto,
+          monto: Number(movimiento.monto),
+          miembroId: movimiento.miembroId,
+          deudaId: movimiento.deudaId,
+        }}
+        onSubmit={handleSubmit}
+        submitLabel="Guardar cambios"
+        miembros={miembros}
+        deudas={deudas}
       />
-      <div className="relative bg-slate-900 border border-slate-800 rounded-2xl shadow-xl shadow-black/40 w-full max-w-md p-5">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-base font-semibold text-white">
-            Editar movimiento
-          </h2>
-          <button
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-300 text-xl leading-none"
-          >
-            &times;
-          </button>
-        </div>
-        <MovimientoForm
-          defaultValues={{
-            fecha: toInputDate(movimiento.fecha),
-            tipo: movimiento.tipo,
-            categoria: movimiento.categoria,
-            concepto: movimiento.concepto,
-            monto: Number(movimiento.monto),
-            miembroId: movimiento.miembroId,
-            deudaId: movimiento.deudaId,
-          }}
-          onSubmit={handleSubmit}
-          submitLabel="Guardar cambios"
-          miembros={miembros}
-          deudas={deudas}
-        />
-      </div>
-    </div>
+    </Modal>
   );
 }

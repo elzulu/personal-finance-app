@@ -5,7 +5,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { miembroSchema, MiembroInput } from "@/lib/validations";
 import { Card } from "@/components/ui/Card";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import { ListSkeleton } from "@/components/ui/Skeleton";
+import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Field";
+import { useFeedback } from "@/components/ui/Feedback";
+import { Trash2, Users } from "lucide-react";
 
 interface Miembro {
   id: string;
@@ -17,7 +23,8 @@ export default function FamiliaPage() {
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
+  const { toast, confirm } = useFeedback();
 
   const {
     register,
@@ -28,10 +35,17 @@ export default function FamiliaPage() {
 
   async function fetchMiembros() {
     setLoading(true);
-    const res = await fetch("/api/miembros");
-    const data = await res.json();
-    setMiembros(data);
-    setLoading(false);
+    setError(false);
+    try {
+      const res = await fetch("/api/miembros");
+      if (!res.ok) throw new Error();
+      const d = await res.json();
+      setMiembros(Array.isArray(d) ? d : []);
+    } catch {
+      setError(true);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -46,70 +60,71 @@ export default function FamiliaPage() {
     });
     if (res.ok) {
       reset();
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 2000);
+      toast("Miembro agregado");
       fetchMiembros();
+    } else {
+      toast("No se pudo agregar el miembro", { kind: "error" });
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar este miembro? Sus movimientos quedarán sin asignar.")) return;
-    setDeleting(id);
-    await fetch(`/api/miembros/${id}`, { method: "DELETE" });
+  async function handleDelete(m: Miembro) {
+    const ok = await confirm({
+      title: `¿Eliminar a ${m.nombre}?`,
+      message: "Sus movimientos y deudas quedarán sin asignar.",
+      confirmLabel: "Eliminar",
+      danger: true,
+    });
+    if (!ok) return;
+    setDeleting(m.id);
+    try {
+      const res = await fetch(`/api/miembros/${m.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast("Miembro eliminado");
+    } catch {
+      toast("No se pudo eliminar el miembro", { kind: "error" });
+    }
     setDeleting(null);
     fetchMiembros();
   }
 
   return (
     <div className="space-y-5 max-w-lg">
-      <div>
-        <h1 className="text-xl font-bold text-white">Miembros del hogar</h1>
-        <p className="text-sm text-slate-400 mt-0.5">
-          Agrega los integrantes de tu familia para asignarles ingresos y egresos.
-        </p>
-      </div>
+      <PageHeader
+        title="Miembros del hogar"
+        subtitle="Agrega los integrantes de tu familia para asignarles ingresos y egresos."
+      />
 
       {/* Agregar miembro */}
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-3">Agregar miembro</h2>
-        {success && (
-          <div className="mb-3 p-2.5 bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 rounded-lg text-sm">
-            Miembro agregado correctamente
-          </div>
-        )}
-        <form onSubmit={handleSubmit(handleAdd)} className="flex gap-2">
-          <div className="flex-1">
-            <input
-              {...register("nombre")}
-              type="text"
-              placeholder="Nombre del miembro"
-              className="w-full px-3 py-2.5 border border-slate-700 bg-slate-950/60 text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400"
-            />
-            {errors.nombre && (
-              <p className="text-rose-400 text-xs mt-1">{errors.nombre.message}</p>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-400 hover:brightness-110 disabled:opacity-50 text-slate-950 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
-          >
-            {isSubmitting ? "..." : "Agregar"}
-          </button>
+        <form onSubmit={handleSubmit(handleAdd)} className="flex items-start gap-2" noValidate>
+          <Input
+            {...register("nombre")}
+            type="text"
+            aria-label="Nombre del miembro"
+            placeholder="Nombre del miembro"
+            wrapperClassName="flex-1"
+            error={errors.nombre?.message}
+          />
+          <Button type="submit" loading={isSubmitting}>
+            Agregar
+          </Button>
         </form>
       </Card>
 
       {/* Lista de miembros */}
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-3">Miembros</h2>
-        {loading ? (
-          <div className="flex justify-center py-6">
-            <LoadingSpinner />
-          </div>
+        {loading && miembros.length === 0 ? (
+          <ListSkeleton rows={3} />
+        ) : error ? (
+          <ErrorState message="No se pudieron cargar los miembros." onRetry={fetchMiembros} />
         ) : miembros.length === 0 ? (
-          <p className="text-sm text-slate-500 py-4 text-center">
-            Aún no has agregado miembros
-          </p>
+          <EmptyState
+            icon={<Users size={22} />}
+            title="Aún no has agregado miembros"
+            description="Agrégalos para repartir ingresos, egresos y deudas entre ellos."
+          />
         ) : (
           <ul className="divide-y divide-slate-800/70">
             {miembros.map((m) => (
@@ -121,11 +136,12 @@ export default function FamiliaPage() {
                   <span className="text-sm font-medium text-slate-200">{m.nombre}</span>
                 </div>
                 <button
-                  onClick={() => handleDelete(m.id)}
+                  onClick={() => handleDelete(m)}
                   disabled={deleting === m.id}
-                  className="text-xs text-rose-400 hover:text-rose-300 font-medium disabled:opacity-50"
+                  aria-label={`Eliminar a ${m.nombre}`}
+                  className="w-11 h-11 flex items-center justify-center rounded-lg text-rose-300 hover:bg-rose-400/10 disabled:opacity-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
                 >
-                  {deleting === m.id ? "..." : "Eliminar"}
+                  <Trash2 size={18} aria-hidden />
                 </button>
               </li>
             ))}

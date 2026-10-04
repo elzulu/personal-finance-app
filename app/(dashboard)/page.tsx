@@ -2,12 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { BarChart3, ChevronRight } from "lucide-react";
 import { ResumenCards } from "@/components/dashboard/ResumenCards";
-import { MovimientoForm } from "@/components/forms/MovimientoForm";
+import { UltimosMovimientos, MovimientoReciente } from "@/components/dashboard/UltimosMovimientos";
+import { NuevoMovimientoFab } from "@/components/movimientos/NuevoMovimientoFab";
 import { MovimientoInput } from "@/lib/validations";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { Card } from "@/components/ui/Card";
-import { getCurrentMesKey, getMesLabel } from "@/lib/formatters";
+import { ResumenSkeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { MonthPicker } from "@/components/ui/MonthPicker";
+import { getCurrentMesKey } from "@/lib/formatters";
 
 interface Miembro {
   id: string;
@@ -29,109 +33,86 @@ interface Resumen {
   ingresos: number;
   egresos: number;
   saldo: number;
-  porCategoria: { tipo: string; categoria: string; monto: number }[];
-  topConceptos: { concepto: string; monto: number }[];
-  evolucion: { mes: string; ingresos: number; egresos: number }[];
 }
 
 export default function DashboardPage() {
   const [mes, setMes] = useState(getCurrentMesKey());
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [recientes, setRecientes] = useState<MovimientoReciente[]>([]);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [deudas, setDeudas] = useState<DeudaOption[]>([]);
   const [loading, setLoading] = useState(true);
-  const [formSuccess, setFormSuccess] = useState(false);
+  const [error, setError] = useState(false);
 
-  const fetchResumen = useCallback(async (mesKey: string) => {
+  const fetchDatos = useCallback(async (mesKey: string) => {
     setLoading(true);
+    setError(false);
     try {
-      const res = await fetch(`/api/resumen?mes=${mesKey}`);
-      const data = await res.json();
-      setResumen(data);
+      const [r, m] = await Promise.all([
+        fetch(`/api/resumen?mes=${mesKey}`),
+        fetch(`/api/movimientos?mes=${mesKey}&limit=5&orderBy=fecha&order=desc`),
+      ]);
+      if (!r.ok) throw new Error();
+      setResumen(await r.json());
+      setRecientes(m.ok ? (await m.json()).data ?? [] : []);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchResumen(mes);
-  }, [mes, fetchResumen]);
+    fetchDatos(mes);
+  }, [mes, fetchDatos]);
 
   useEffect(() => {
     fetch("/api/miembros")
       .then((r) => r.json())
-      .then(setMiembros)
+      .then((d) => setMiembros(Array.isArray(d) ? d : []))
       .catch(() => {});
     fetch("/api/deudas")
       .then((r) => r.json())
-      .then(setDeudas)
+      .then((d) => setDeudas(Array.isArray(d) ? d : []))
       .catch(() => {});
   }, []);
 
-  async function handleNuevoMovimiento(data: MovimientoInput) {
-    const res = await fetch("/api/movimientos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error ?? "Error al guardar");
-    }
-    setFormSuccess(true);
-    setTimeout(() => setFormSuccess(false), 2500);
-    const movFecha = new Date(data.fecha);
-    const movMes = `${movFecha.getFullYear()}-${String(movFecha.getMonth() + 1).padStart(2, "0")}`;
-    if (movMes === mes) fetchResumen(mes);
+  function handleCreated(data: MovimientoInput) {
+    // Solo hace falta refrescar si el movimiento cae en el mes mostrado
+    if (data.fecha.slice(0, 7) === mes) fetchDatos(mes);
     // Refrescar saldos de deudas si se vinculó alguna
     if (data.deudaId) {
-      fetch("/api/deudas").then((r) => r.json()).then(setDeudas).catch(() => {});
+      fetch("/api/deudas").then((r) => r.json()).then((d) => setDeudas(Array.isArray(d) ? d : [])).catch(() => {});
     }
   }
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-white">Dashboard</h1>
-          <p className="text-sm text-slate-400 capitalize mt-0.5">{getMesLabel(mes)}</p>
-        </div>
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="border border-slate-700 bg-slate-900 text-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 [color-scheme:dark]"
-        />
-      </div>
+      <PageHeader title="Dashboard" actions={<MonthPicker value={mes} onChange={setMes} />} />
 
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <LoadingSpinner size="lg" />
-        </div>
+      {loading && !resumen ? (
+        <ResumenSkeleton />
+      ) : error ? (
+        <ErrorState message="No se pudo cargar el resumen del mes." onRetry={() => fetchDatos(mes)} />
       ) : resumen ? (
-        <>
+        <div className={loading ? "opacity-60 transition-opacity" : "transition-opacity"}>
           <ResumenCards ingresos={resumen.ingresos} egresos={resumen.egresos} saldo={resumen.saldo} />
-          <Link
-            href="/graficas"
-            className="flex items-center justify-between px-4 py-3 rounded-2xl border border-slate-800 bg-slate-900/70 text-sm text-slate-300 hover:border-cyan-400/30 hover:text-white transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <span aria-hidden>📊</span> Ver gráficas y balance mensual
-            </span>
-            <span aria-hidden>→</span>
-          </Link>
-        </>
+        </div>
       ) : null}
 
-      <Card className="p-4">
-        <h2 className="text-sm font-semibold text-slate-200 mb-4">Registrar movimiento</h2>
-        {formSuccess && (
-          <div className="mb-3 p-2.5 bg-emerald-400/10 border border-emerald-400/20 text-emerald-400 rounded-lg text-sm">
-            Movimiento guardado correctamente
-          </div>
-        )}
-        <MovimientoForm onSubmit={handleNuevoMovimiento} miembros={miembros} deudas={deudas} />
-      </Card>
+      {!error && <UltimosMovimientos data={recientes} />}
+
+      <Link
+        href="/graficas"
+        className="flex items-center justify-between min-h-12 px-4 rounded-2xl border border-slate-800 bg-slate-900/70 text-sm text-slate-300 hover:border-cyan-400/30 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+      >
+        <span className="flex items-center gap-2">
+          <BarChart3 size={18} aria-hidden /> Ver gráficas y balance mensual
+        </span>
+        <ChevronRight size={18} aria-hidden />
+      </Link>
+
+      <NuevoMovimientoFab miembros={miembros} deudas={deudas} onCreated={handleCreated} />
     </div>
   );
 }

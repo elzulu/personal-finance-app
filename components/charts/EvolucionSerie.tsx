@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { formatCOP } from "@/lib/formatters";
 import { Card } from "@/components/ui/Card";
+import { ChartFrame } from "@/components/charts/ChartFrame";
 
 interface MesData {
   mes: string;
@@ -40,7 +41,7 @@ export function EvolucionSerie({
     return (
       <Card className="p-4">
         <h2 className="text-sm font-semibold text-slate-200 mb-2">{titulo}</h2>
-        <p className="text-sm text-slate-500 py-6 text-center">Sin datos disponibles</p>
+        <p className="text-sm text-slate-400 py-6 text-center">Sin datos disponibles</p>
       </Card>
     );
   }
@@ -53,6 +54,11 @@ export function EvolucionSerie({
   return (
     <Card className="p-4">
       <h2 className="text-sm font-semibold text-slate-200 mb-4">{titulo}</h2>
+      <ChartFrame
+        label={titulo}
+        columns={["Mes", "Monto"]}
+        rows={data.map((d) => [d.mes, formatCOP(d.monto)])}
+      >
       <ResponsiveContainer width="100%" height={220}>
         <BarChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
@@ -90,6 +96,7 @@ export function EvolucionSerie({
           <Bar dataKey="monto" fill={color} radius={[3, 3, 0, 0]} maxBarSize={48} isAnimationActive={false} />
         </BarChart>
       </ResponsiveContainer>
+      </ChartFrame>
     </Card>
   );
 }

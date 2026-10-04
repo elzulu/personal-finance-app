@@ -23,7 +23,7 @@ export function GastoPorCategoria({ data, titulo = "Gastos por categoría" }: Ga
         <h2 className="text-sm font-semibold text-slate-200 mb-2">
           {titulo}
         </h2>
-        <p className="text-sm text-slate-500 py-6 text-center">Sin datos este mes</p>
+        <p className="text-sm text-slate-400 py-6 text-center">Sin datos este mes</p>
       </Card>
     );
   }
@@ -37,10 +37,11 @@ export function GastoPorCategoria({ data, titulo = "Gastos por categoría" }: Ga
           {titulo}
         </h2>
         <div className="text-right">
-          <span className="block text-[10px] uppercase tracking-wide text-slate-500">Total</span>
+          <span className="block text-xs uppercase tracking-wide text-slate-400">Total</span>
           <span className="block text-base font-bold text-white">{formatCOP(total)}</span>
         </div>
       </div>
+      <div aria-hidden>
       <ResponsiveContainer width="100%" height={180}>
         <PieChart>
           <Pie
@@ -78,6 +79,7 @@ export function GastoPorCategoria({ data, titulo = "Gastos por categoría" }: Ga
           />
         </PieChart>
       </ResponsiveContainer>
+      </div>
 
       <ul className="mt-2 space-y-1.5">
         {data.map((d, i) => (
@@ -86,6 +88,7 @@ export function GastoPorCategoria({ data, titulo = "Gastos por categoría" }: Ga
               <span
                 className="w-2 h-2 rounded-full shrink-0"
                 style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                aria-hidden
               />
               <span className="truncate">{d.categoria}</span>
             </span>

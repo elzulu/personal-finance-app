@@ -5,8 +5,11 @@ import { GastoPorCategoria } from "@/components/charts/GastoPorCategoria";
 import { EvolucionMensual } from "@/components/charts/EvolucionMensual";
 import { TopConceptos } from "@/components/charts/TopConceptos";
 import { BalanceScatter } from "@/components/charts/BalanceScatter";
-import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { getCurrentMesKey, getMesLabel } from "@/lib/formatters";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ErrorState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { MonthPicker } from "@/components/ui/MonthPicker";
+import { getCurrentMesKey } from "@/lib/formatters";
 
 interface Resumen {
   mes: string;
@@ -22,13 +25,18 @@ export default function GraficasPage() {
   const [mes, setMes] = useState(getCurrentMesKey());
   const [resumen, setResumen] = useState<Resumen | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchResumen = useCallback(async (mesKey: string) => {
     setLoading(true);
+    setError(false);
     try {
       const res = await fetch(`/api/resumen?mes=${mesKey}`);
+      if (!res.ok) throw new Error();
       const data = await res.json();
       setResumen(data);
+    } catch {
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -43,23 +51,18 @@ export default function GraficasPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-white">Gráficas</h1>
-          <p className="text-sm text-slate-400 capitalize mt-0.5">{getMesLabel(mes)}</p>
-        </div>
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="border border-slate-700 bg-slate-900 text-slate-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 [color-scheme:dark]"
-        />
-      </div>
+      <PageHeader title="Gráficas" actions={<MonthPicker value={mes} onChange={setMes} />} />
 
-      {loading ? (
-        <div className="flex justify-center py-10">
-          <LoadingSpinner size="lg" />
+      {loading && !resumen ? (
+        <div className="space-y-4" role="status" aria-label="Cargando gráficas">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Skeleton className="h-64 rounded-2xl" />
+            <Skeleton className="h-64 rounded-2xl" />
+          </div>
+          <Skeleton className="h-40 rounded-2xl" />
         </div>
+      ) : error ? (
+        <ErrorState message="No se pudieron cargar las gráficas." onRetry={() => fetchResumen(mes)} />
       ) : resumen ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
