@@ -11,6 +11,7 @@ export const CATEGORIAS_POR_TIPO: Record<Tipo, string[]> = {
     "Educación",
     "Entretenimiento",
     "Ropa",
+    "Compras",
     "Deudas",
     "Ahorro",
     "Tecnología",

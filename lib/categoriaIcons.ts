@@ -15,6 +15,7 @@ export const CATEGORIA_ICONOS: Record<string, string> = {
   Educación: "🎓",
   Entretenimiento: "🎬",
   Ropa: "👕",
+  Compras: "🛍️",
   Deudas: "💳",
   Ahorro: "🐷",
   Tecnología: "💻",

@@ -60,8 +60,8 @@ set -a && source .env.local && set +a && npx prisma db push
 - `TipoDeuda`: `TARJETA_CREDITO` | `ADDI` | `SISTECREDITO` | `PRESTAMO_BANCARIO` | `OTRO`
 
 ### Categorías
-- **INGRESO**: Sueldo, Negocio, Inversiones, Arriendo, Bonificaciones, Otro
-- **EGRESO**: Vivienda, Servicios, Alimentación, Transporte, Salud, Educación, Entretenimiento, Ropa, Deudas, Ahorro, Tecnología, Familia, Otro
+- **INGRESO**: Sueldo, Negocio, Trabajo Extra, Inversiones, Arriendo, Bonificaciones, Otro
+- **EGRESO**: Vivienda, Servicios, Alimentación, Transporte, Salud, Educación, Entretenimiento, Ropa, Compras, Deudas, Ahorro, Tecnología, Familia, Otro
 
 ### Modelo Movimiento
 Campos relevantes: `userId`, `miembroId?`, `deudaId?` (FK → Deuda, `onDelete: SetNull`), `fecha`, `tipo`, `categoria`, `concepto`, `monto`.
