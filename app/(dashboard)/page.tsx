@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [recientes, setRecientes] = useState<MovimientoReciente[]>([]);
   const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [deudas, setDeudas] = useState<DeudaOption[]>([]);
+  const [deudasCargadas, setDeudasCargadas] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -41,7 +42,7 @@ export default function DashboardPage() {
     setError(false);
     try {
       const [r, m] = await Promise.all([
-        fetch(`/api/resumen?mes=${mesKey}`),
+        fetch(`/api/resumen?mes=${mesKey}&solo=totales`),
         fetch(`/api/movimientos?mes=${mesKey}&limit=5&orderBy=fecha&order=desc`),
       ]);
       if (!r.ok) throw new Error();
@@ -66,8 +67,12 @@ export default function DashboardPage() {
     fetch("/api/deudas")
       .then((r) => r.json())
       .then((d) => setDeudas(Array.isArray(d) ? d : []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setDeudasCargadas(true));
   }, []);
+
+  // Primera carga: todo el dashboard muestra esqueletos y aparece de una vez, sin saltos ni falsos "sin datos"
+  const cargandoInicio = (loading && !resumen) || !deudasCargadas;
 
   function handleCreated(data: MovimientoInput) {
     // Solo hace falta refrescar si el movimiento cae en el mes mostrado
@@ -82,7 +87,7 @@ export default function DashboardPage() {
     <div className="space-y-5">
       <PageHeader title="Dashboard" actions={<MonthPicker value={mes} onChange={setMes} />} />
 
-      {loading && !resumen ? (
+      {cargandoInicio ? (
         <ResumenSkeleton />
       ) : error ? (
         <ErrorState message="No se pudo cargar el resumen del mes." onRetry={() => fetchDatos(mes)} />
@@ -92,9 +97,13 @@ export default function DashboardPage() {
         </div>
       ) : null}
 
-      <ProximosPagos deudas={deudas} />
+      {!cargandoInicio && <ProximosPagos deudas={deudas} />}
 
-      {!error && <UltimosMovimientos data={recientes} />}
+      {!error && (
+        <div className={loading && !cargandoInicio ? "opacity-60 transition-opacity" : "transition-opacity"}>
+          <UltimosMovimientos data={recientes} loading={cargandoInicio} />
+        </div>
+      )}
 
       <Link
         href="/graficas"

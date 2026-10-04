@@ -21,6 +21,19 @@ export async function GET(req: NextRequest) {
   const endDate = new Date(year, month, 1);
   const userId = session.user.id;
 
+  // ?solo=totales: el dashboard solo necesita ingresos/egresos/saldo, se evitan las consultas de gráficas
+  if (searchParams.get("solo") === "totales") {
+    const totales = await prisma.movimiento.groupBy({
+      by: ["tipo"],
+      where: { userId, fecha: { gte: startDate, lt: endDate } },
+      _sum: { monto: true },
+    });
+    const sumaDe = (tipo: string) => Number(totales.find((t) => t.tipo === tipo)?._sum.monto ?? 0);
+    const ingresos = sumaDe("INGRESO");
+    const egresos = sumaDe("EGRESO");
+    return NextResponse.json({ mes, ingresos, egresos, saldo: ingresos - egresos });
+  }
+
   const [ingresos, egresos, porCategoria, topConceptos, movimientosMeses] =
     await Promise.all([
       prisma.movimiento.aggregate({

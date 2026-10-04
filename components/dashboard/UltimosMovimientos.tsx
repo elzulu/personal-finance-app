@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight, Inbox } from "lucide-react";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { formatCOP, formatDate } from "@/lib/formatters";
 import { getCategoriaIcono } from "@/lib/categoriaIcons";
 
@@ -14,7 +15,7 @@ export interface MovimientoReciente {
   monto: string;
 }
 
-export function UltimosMovimientos({ data }: { data: MovimientoReciente[] }) {
+export function UltimosMovimientos({ data, loading = false }: { data: MovimientoReciente[]; loading?: boolean }) {
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-2">
@@ -27,7 +28,10 @@ export function UltimosMovimientos({ data }: { data: MovimientoReciente[] }) {
         </Link>
       </div>
 
-      {data.length === 0 ? (
+      {/* Mientras carga se muestra el esqueleto, nunca el estado vacío (parecería que no hay datos) */}
+      {loading ? (
+        <ListSkeleton rows={3} />
+      ) : data.length === 0 ? (
         <EmptyState
           icon={<Inbox size={22} />}
           title="Sin movimientos este mes"
