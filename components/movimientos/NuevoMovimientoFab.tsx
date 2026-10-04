@@ -21,7 +21,7 @@ interface NuevoMovimientoFabProps {
 }
 
 // Botón flotante "+" que abre el registro de movimiento en una hoja inferior (modal en escritorio).
-// La hoja queda abierta tras guardar para poder registrar varios seguidos.
+// La hoja se cierra al guardar correctamente; si hay error queda abierta mostrando el mensaje.
 export function NuevoMovimientoFab({ miembros, deudas, defaultTipo, onCreated }: NuevoMovimientoFabProps) {
   const [open, setOpen] = useState(false);
   const { toast } = useFeedback();
@@ -37,6 +37,7 @@ export function NuevoMovimientoFab({ miembros, deudas, defaultTipo, onCreated }:
       throw new Error(err.error ?? "Error al guardar");
     }
     toast("Movimiento guardado");
+    setOpen(false);
     onCreated?.(data);
   }
 
